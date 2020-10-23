@@ -7,8 +7,6 @@
 
 ushort SCREEN_WIDTH;
 ushort SCREEN_HEIGHT;
-ushort* SCREEN_PHYSADDR;
-ushort* VESA_ADDR;
 int screen_size;
 
 // 24 bit RGB. used in GUI Utility
@@ -25,8 +23,6 @@ typedef struct RGBA {
     unsigned char G;
     unsigned char R;
 } RGBA;
-
-
 
 #endif
 #endif

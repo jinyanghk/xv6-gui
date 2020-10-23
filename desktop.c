@@ -1,5 +1,4 @@
 #include "types.h"
-#include "gui.h"
 #include "user.h"
 #include "fcntl.h"
 #include "memlayout.h"

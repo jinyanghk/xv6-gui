@@ -12,9 +12,17 @@ struct superblock;
 
 struct RGB;
 struct RGBA;
+struct message;
+
+//msg.c
+int     handleMessage(struct message*);
 
 //gui.c
-//extern struct RGB *screen_buf2;
+extern int screen_size;
+extern ushort  SCREEN_WIDTH;
+extern ushort  SCREEN_HEIGHT;
+extern struct RGB* screen;
+extern struct RGB* screen_buf1;
 void initGUI(void);
 void drawPoint(struct RGB *color, struct RGB origin);
 void drawPointAlpha(struct RGB *color, struct RGBA origin);
@@ -83,6 +91,10 @@ void kinit2(void *, void *);
 
 // kbd.c
 void kbdintr(void);
+
+// mouse.c
+void            mouseinit(void);
+void            mouseintr(uint);
 
 // lapic.c
 void cmostime(struct rtcdate *r);

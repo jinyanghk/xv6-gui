@@ -13,8 +13,8 @@ struct spinlock screen_lock;
 struct spinlock buf1_lock;
 struct spinlock buf2_lock;
 
-static RGB *screen;
-static RGB screen_buf1[480000];
+RGB *screen;
+RGB *screen_buf1;
 //static RGB *screen_buf2[480000];
 
 
@@ -22,14 +22,11 @@ void initGUI() {
     uint GraphicMem = KERNBASE + 0x1028;
     
     uint baseAdd = *((uint *) GraphicMem);
-    SCREEN_PHYSADDR = (unsigned short*)baseAdd;
-    VESA_ADDR = SCREEN_PHYSADDR;
+    screen = (RGB *) baseAdd;
     SCREEN_WIDTH = *((ushort *) (KERNBASE + 0x1012));
     SCREEN_HEIGHT = *((ushort *) (KERNBASE + 0x1014));
     screen_size = (SCREEN_WIDTH * SCREEN_HEIGHT) * 3;
-
-    screen= (RGB*) VESA_ADDR;
-    //screen_buf1 = (RGB *) (baseAdd + screen_size);
+    screen_buf1 = (RGB *) (baseAdd + screen_size);
     //screen_buf2 = (RGB *) (baseAdd + screen_size * 2);
 /*
     mouse_color[0].G = 0;
