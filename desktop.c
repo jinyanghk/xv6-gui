@@ -9,7 +9,7 @@ int main() {
     drawline();
 
     while (1) {
-        printf(1, "I am in desktop\n");
+        //printf(1, "I am in desktop\n");
     }
 
 }

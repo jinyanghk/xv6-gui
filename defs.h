@@ -14,8 +14,12 @@ struct RGB;
 struct RGBA;
 struct message;
 
+//window_manager.c
+//void            wmInit(void);
+void            wmHandleMessage(struct message*);
+
 //msg.c
-int     handleMessage(struct message*);
+int             handleMessage(struct message*);
 
 //gui.c
 extern int screen_size;
@@ -28,6 +32,9 @@ void drawPoint(struct RGB *color, struct RGB origin);
 void drawPointAlpha(struct RGB *color, struct RGBA origin);
 int drawCharacter(struct RGB *, int, int, char, struct RGBA);
 void drawString(struct RGB *, int, int, char *, struct RGBA);
+void            drawMouse(struct RGB*, int, int, int);
+void            clearMouse(struct RGB*, struct RGB*,int, int);
+
 void drawline(void);
 
 // bio.c
