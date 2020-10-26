@@ -14,15 +14,16 @@ typedef struct msg_buf
 } msg_buf;
 */
 
-//typedef struct window
-//{
-	//win_rect contents;
+typedef struct windowtemp
+{
+	win_rect position;
 	//int width;
 	//int height;
 	//win_rect titlebar;
 	//msg_buf msg_buf;
-	//struct RGB *window_buf;
+	struct RGB *window_buf;
+	struct RGB *title_buf;
 	//char title[MAX_TITLE_LEN];
-//} window;
+} windowtemp;
 
 #endif

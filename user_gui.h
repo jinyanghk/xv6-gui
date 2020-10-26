@@ -26,8 +26,8 @@ typedef struct window {
     struct RGB *title_buf;
     win_rect position;
     //msg_buf messages;
-    struct window *prev;
-	struct window *next;
+    //struct window *prev;
+	//struct window *next;
 } window;
 
 typedef window* window_p;
