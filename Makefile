@@ -147,7 +147,7 @@ tags: $(OBJS) entryother.S _init
 vectors.S: vectors.pl
 	./vectors.pl > vectors.S
 
-ULIB = ulib.o usys.o printf.o umalloc.o
+ULIB = ulib.o usys.o printf.o umalloc.o user_gui.o
 
 _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
@@ -169,7 +169,7 @@ mkfs: mkfs.c fs.h
 # http://www.gnu.org/software/make/manual/html_node/Chained-Rules.html
 .PRECIOUS: %.o
 
-UPROGS=\
+#UPROGS=\
 	_cat\
 	_echo\
 	_forktest\
@@ -185,7 +185,11 @@ UPROGS=\
 	_usertests\
 	_wc\
 	_zombie\
-	_desktop
+	_desktop\
+
+UPROGS=\
+	_init\
+	_desktop\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

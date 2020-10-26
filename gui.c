@@ -18,7 +18,6 @@ RGB *screen;
 RGB *screen_buf1;
 //static RGB *screen_buf2[480000];
 
-
 void initGUI() {
     uint GraphicMem = KERNBASE + 0x1028;
     
@@ -46,7 +45,7 @@ void initGUI() {
     cprintf("@Bits per pixel: %d\n", *((uchar *) (KERNBASE + 0x1019)));
     cprintf("@Video card drivers initialized successfully.\n");
 
-    //wmInit();
+    wmInit();
 }
 
 void acquireGUILock(RGB *buf) {
@@ -281,12 +280,4 @@ void clearMouse(RGB *buf, RGB *temp_buf, int x, int y) {
     clearRect(buf, temp_buf, x, y, MOUSE_WIDTH, MOUSE_HEIGHT);
 }
 
-
-int sys_drawline(void) {
-    struct RGBA color;
-    color.R = 170; color.G = 150; color.B = 100; color.A = 100;
-    drawString(screen_buf1, 100, 200, "hello", color);
-    memmove(screen, screen_buf1, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(RGB));
-    return 0;
-}
 

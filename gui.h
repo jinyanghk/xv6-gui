@@ -24,5 +24,6 @@ typedef struct RGBA {
     unsigned char R;
 } RGBA;
 
+
 #endif
 #endif

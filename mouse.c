@@ -104,7 +104,7 @@ genMouseMessage()
   if (packet.x_overflow || packet.y_overflow) return;
 	int x = packet.x_sgn ? (0xffffff00 | (packet.x_mov & 0xff)) : (packet.x_mov & 0xff);
 	int y = packet.y_sgn ? (0xffffff00 | (packet.y_mov & 0xff)) : (packet.y_mov & 0xff);
-/*	if(x == 127 || x == -127 || y == 127 || y == -127){
+	/*if(x == 127 || x == -127 || y == 127 || y == -127){
 		x = 0;
 		y = 0;
 	}*/

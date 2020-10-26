@@ -15,7 +15,7 @@ struct RGBA;
 struct message;
 
 //window_manager.c
-//void            wmInit(void);
+void            wmInit(void);
 void            wmHandleMessage(struct message*);
 
 //msg.c
@@ -27,15 +27,19 @@ extern ushort  SCREEN_WIDTH;
 extern ushort  SCREEN_HEIGHT;
 extern struct RGB* screen;
 extern struct RGB* screen_buf1;
-void initGUI(void);
-void drawPoint(struct RGB *color, struct RGB origin);
-void drawPointAlpha(struct RGB *color, struct RGBA origin);
-int drawCharacter(struct RGB *, int, int, char, struct RGBA);
-void drawString(struct RGB *, int, int, char *, struct RGBA);
+void            initGUI(void);
+int             drawCharacter(struct RGB*, int, int, char, struct RGBA);
+void            drawString(struct RGB*, int, int, char *, struct RGBA);
 void            drawMouse(struct RGB*, int, int, int);
 void            clearMouse(struct RGB*, struct RGB*,int, int);
-
-void drawline(void);
+void            drawRect(struct RGB*, int, int, int, int, struct RGBA);
+void            clearRect(struct RGB*, struct RGB*, int, int, int, int);
+void            drawRectByCoord(struct RGB*, int, int, int, int, struct RGBA);
+void            clearRectByCoord(struct RGB*, struct RGB*, int, int, int, int);
+void            draw24Image(struct RGB*, struct RGB*, int, int, int, int, int, int);
+void            draw24ImagePart(struct RGB*, struct RGB*, int, int, int, int, int, int, int, int);
+void            drawImage(struct RGB*, struct RGBA*, int, int, int, int, int, int);
+void            drawRectBound(struct RGB*, int, int, int, int, struct RGBA, int, int);
 
 // bio.c
 void binit(void);

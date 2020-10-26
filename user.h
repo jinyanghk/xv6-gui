@@ -43,3 +43,10 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
+
+//window_manager.c
+int createWindow(struct window*);
+void updateScreen();
+
+// themis_ui.c
+void UI_createWindow(struct window *, const char*);
