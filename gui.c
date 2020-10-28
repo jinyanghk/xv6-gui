@@ -10,6 +10,10 @@
 #include "character.h"
 #include "mouse_shape.h"
 
+ushort SCREEN_WIDTH;
+ushort SCREEN_HEIGHT;
+int screen_size;
+
 struct spinlock screen_lock;
 struct spinlock buf1_lock;
 struct spinlock buf2_lock;

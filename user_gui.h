@@ -23,15 +23,11 @@ typedef struct msg_buf
 
 typedef struct window {
     struct RGB *window_buf;
-    struct RGB *title_buf;
-    win_rect position;
+    int width;
+    int height;
     //msg_buf messages;
-    //struct window *prev;
-	//struct window *next;
 } window;
 
 typedef window* window_p;
-
-//extern window_p windowList;
 
 #endif

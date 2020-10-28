@@ -22,7 +22,7 @@ typedef struct windowtemp
 	//win_rect titlebar;
 	//msg_buf msg_buf;
 	struct RGB *window_buf;
-	struct RGB *title_buf;
+	//struct RGB *title_buf;
 	//char title[MAX_TITLE_LEN];
 } windowtemp;
 

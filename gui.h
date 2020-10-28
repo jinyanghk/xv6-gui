@@ -5,9 +5,9 @@
 
 #ifndef __ASSEMBLER__
 
-ushort SCREEN_WIDTH;
-ushort SCREEN_HEIGHT;
-int screen_size;
+extern ushort SCREEN_WIDTH;
+extern ushort SCREEN_HEIGHT;
+extern int screen_size;
 
 // 24 bit RGB. used in GUI Utility
 typedef struct RGB {
