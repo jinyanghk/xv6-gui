@@ -45,8 +45,15 @@ void free(void*);
 int atoi(const char*);
 
 //window_manager.c
-int createWindow(struct window*);
+int createWindow(struct window*, const char*);
+int closeWindow(struct window*);
+int getMessage(int, struct message *);
 void updateScreen();
 
 // themis_ui.c
 void UI_createWindow(struct window *, const char*);
+void UI_closeWindow(struct window *);
+void UI_updateWindow(struct window*);
+
+void drawFillRect(struct window *win, struct RGBA color, int x, int y, int width, int height);
+void drawString(struct window *win, int x, int y, char *str, struct RGBA color, int width);

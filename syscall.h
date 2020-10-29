@@ -21,4 +21,6 @@
 #define SYS_mkdir  20
 #define SYS_close  21
 #define SYS_createWindow 22
-#define SYS_updateScreen 23
+#define SYS_closeWindow 23
+#define SYS_getMessage 24
+#define SYS_updateScreen 25

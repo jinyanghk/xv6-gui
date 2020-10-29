@@ -190,6 +190,7 @@ mkfs: mkfs.c fs.h
 UPROGS=\
 	_init\
 	_desktop\
+	_demo\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

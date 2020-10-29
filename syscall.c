@@ -105,6 +105,8 @@ extern int sys_write(void);
 extern int sys_uptime(void);
 extern int sys_drawline(void);
 extern int sys_createWindow(void);
+extern int sys_closeWindow(void);
+extern int sys_getMessage(void);
 extern int sys_updateScreen(void);
 
 static int (*syscalls[])(void) = {
@@ -130,6 +132,8 @@ static int (*syscalls[])(void) = {
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
 [SYS_createWindow] sys_createWindow,
+[SYS_closeWindow] sys_closeWindow,
+[SYS_getMessage] sys_getMessage,
 [SYS_updateScreen] sys_updateScreen,
 };
 
