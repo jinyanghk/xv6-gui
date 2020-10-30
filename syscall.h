@@ -24,3 +24,4 @@
 #define SYS_closeWindow 23
 #define SYS_getMessage 24
 #define SYS_updateScreen 25
+#define SYS_updateWindow 26

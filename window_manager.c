@@ -88,8 +88,6 @@ void removeFromList(int *tail, int idx)
 
 static int clickedOnTitle, clickedOnContent;
 
-int next_window_id = 1;
-
 struct spinlock wmlock;
 
 static struct
@@ -118,7 +116,7 @@ int dispatchMessage(msg_buf *buf, message *msg)
 
 //return non-zero if buf is empty
 int getMessage(msg_buf *buf, message *result)
-{
+{	
 	if (buf->cnt == 0)
 		return 1;
 	--buf->cnt;
@@ -170,6 +168,7 @@ void debugPrintWindowList()
 {
 
 	cprintf("############################\n");
+	cprintf("current Proc at %d\n", myproc());
 	cprintf("current Head at %d\n", windowlisthead);
 	cprintf("current Tail at %d\n", windowlisttail);
 	cprintf("\n");
@@ -179,6 +178,7 @@ void debugPrintWindowList()
 	{
 
 		cprintf("current Window at %d\n", p);
+		cprintf("current Window proc %d\n", windowlist[p].proc);
 		cprintf("prev Window at %d\n", windowlist[p].prev);
 		cprintf("next Window at %d\n", windowlist[p].next);
 		//cprintf("current Window width %d\n", windowlist[p].wnd->position.xmax - windowlist[p].wnd->position.xmin);
@@ -206,7 +206,13 @@ void focusWindow(int winId)
 	}
 
 	addToListTail(&windowlisttail, winId);
-
+	/*
+	switchuvm(windowlist[winId].proc);
+	if (myproc() == 0)
+		switchkvm();
+	else
+		switchuvm(myproc());
+	*/
 	//debugPrintWindowList();
 }
 
@@ -254,9 +260,10 @@ void wmHandleMessage(message *msg)
 		}
 		break;
 	case M_MOUSE_DOWN:
-		debugPrintWindowList();
+		//debugPrintWindowList();
 		//cprintf("mouse at %d, %d\n", wm_mouse_pos.x, wm_mouse_pos.y);
 		//handle focus changes
+		;
 		int p = windowlisttail;
 		for (; p != -1; p = windowlist[p].prev)
 		{
@@ -295,14 +302,15 @@ void wmHandleMessage(message *msg)
 	case M_MOUSE_LEFT_CLICK:
 	case M_MOUSE_RIGHT_CLICK:
 	case M_MOUSE_DBCLICK:
+		
 		if (clickedOnContent)
 		{
 			clickedOnContent = 0;
-			
-			newmsg = *msg;
+			newmsg.msg_type=msg->msg_type;
 			newmsg.params[0] = wm_mouse_pos.x - windowlist[windowlisttail].wnd.position.xmin;
 			newmsg.params[1] = wm_mouse_pos.y - windowlist[windowlisttail].wnd.position.ymin;
-			newmsg.params[2] = msg->params[0];
+			//newmsg.params[2] = msg->params[0];
+			cprintf("message type %d, dispatch to %d\n", msg->msg_type, windowlisttail);
 			dispatchMessage(&windowlist[windowlisttail].wnd.msg_buf, &newmsg);
 		}
 	case M_MOUSE_UP:
@@ -368,6 +376,10 @@ void updateScreen()
 	memset(screen_buf1, 255, screen_size);
 	drawWindow(&windowlist[desktopHandler].wnd, 0);
 
+	//message newmessage;
+	//newmessage.msg_type = WM_WINDOW_REDRAW;
+	//dispatchMessage(&windowlist[windowlisthead].wnd.msg_buf, &newmessage);
+
 	int p;
 	for (p = windowlisthead; p != -1; p = windowlist[p].next)
 	{
@@ -378,13 +390,31 @@ void updateScreen()
 			if (myproc() == 0)
 				switchkvm();
 			else
-				switchuvm(myproc());
+				switchuvm(windowlist[desktopHandler].proc);
 		}
 	}
+	
 
 	drawMouse(screen_buf1, 0, wm_mouse_pos.x, wm_mouse_pos.y);
 	memmove(screen, screen_buf1, screen_size);
 
+	release(&wmlock);
+}
+
+void updateWindow(int handler)
+{
+
+	acquire(&wmlock);
+	if (handler != desktopHandler)
+	{
+		drawWindow(&windowlist[handler].wnd, 1);
+	}
+	if (windowlist[handler].next != -1)
+	{
+		message newmessage;
+		newmessage.msg_type = WM_WINDOW_REDRAW;
+		dispatchMessage(&windowlist[windowlist[handler].next].wnd.msg_buf, &newmessage);
+	}
 	release(&wmlock);
 }
 
@@ -426,7 +456,7 @@ int createWindow(window_p window, char *title)
 		return -1;
 	memmove(windowlist[winId].wnd.title, title, len);
 
-	debugPrintWindowList();
+	//debugPrintWindowList();
 
 	release(&wmlock);
 
@@ -441,8 +471,8 @@ int closeWindow(window_p window)
 	int winId = window->handler;
 
 	removeFromList(&windowlisttail, winId);
-	windowlist[winId].prev = -1;
-	windowlist[winId].next = -1;
+	windowlist[winId].prev = winId;
+	windowlist[winId].next = winId;
 	initMessageQueue(&windowlist[winId].wnd.msg_buf);
 
 	if (winId == windowlisttail && windowlisttail >= 1)
@@ -479,11 +509,23 @@ int sys_getMessage()
 	message *res;
 	argint(0, &h);
 	argptr(1, (char **)(&res), sizeof(message));
+	if (myproc() != windowlist[h].proc)
+	{
+		return 0;
+	}
 	return getMessage(&windowlist[h].wnd.msg_buf, res);
 }
 
 int sys_updateScreen()
 {
 	updateScreen();
+	return 0;
+}
+
+int sys_updateWindow()
+{
+	int h;
+	argint(0, &h);
+	updateWindow(h);
 	return 0;
 }

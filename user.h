@@ -49,6 +49,7 @@ int createWindow(struct window*, const char*);
 int closeWindow(struct window*);
 int getMessage(int, struct message *);
 void updateScreen();
+void updateWindow(int );
 
 // themis_ui.c
 void UI_createWindow(struct window *, const char*);

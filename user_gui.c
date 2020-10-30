@@ -20,8 +20,15 @@ void UI_createWindow(window *win, const char *title)
     {
         return;
     }
-
-    memset(win->window_buf, 100, height * width * 3);
+    memset(win->window_buf, 255, height * width * 3);
+    win->widgetlisthead=-1;
+    win->widgetlisttail=-1;
+    int i;
+	for (i = 0; i < MAX_WIDGET_SIZE; ++i)
+	{
+		win->widgets[i].next = i;
+		win->widgets[i].prev = i;
+	}
 
     createWindow(win, title);
 }
@@ -36,21 +43,24 @@ void UI_closeWindow(window *win)
 
 void UI_updateWindow(window *win)
 {
+
     message msg;
     if (getMessage(win->handler, &msg)==0)
     {
+        //TODO: check widgets to determine
         if(msg.msg_type!=0) {
-            printf(1, "message is %d\n", msg.msg_type);
+            //printf(1, "message is %d\n", msg.msg_type);
             printf(1, "mouse at %d, %d\n", msg.params[0], msg.params[1]);
         }
         if (msg.msg_type == WM_WINDOW_CLOSE)
         {
             UI_closeWindow(win);
         }
-        if (msg.msg_type == M_MOUSE_DBCLICK && msg.params[0]<100 && msg.params[1]<100)
+        if (msg.msg_type==M_MOUSE_DBCLICK)
         {
             if (fork() == 0)
             {
+                printf(1, "fork new process\n");
                 char *argv2[] = { "demo"};
                 exec(argv2[0], argv2);
                 exit();
@@ -241,4 +251,36 @@ void draw24FillRect(window *win, RGB color, int x, int y, int width, int height)
             memmove(o, t, max_line * 3);
         }
     }
+}
+
+int addButtonWidget(window *win, RGBA c, RGBA bc, char* text, int x, int y, int w, int h) {
+    /*
+    if (win->widget_number >= MAX_WIDGET_SIZE) {
+        return -1;
+    }
+    Button *b = malloc(sizeof(Button));
+    b->bg_color = bc;
+    b->color = c;
+    strcpy(b->text, text);
+    Widget *widget = &win->widgets[win->widget_number];
+    widget->paint = drawButtonWidget;
+    widget->context.button = b;
+    widget->type = BUTTON;
+    setWidgetSize(widget, x, y, w, h);
+    win->widget_number++;
+    return (win->widget_number - 1);
+    */
+   return 0;
+}
+
+void drawButtonWidget(window *win, Widget* w) {
+    RGB black;
+    black.R = 0;
+    black.G = 0;
+    black.B = 0;
+    int width=w->position.xmax-w->position.xmin;
+    int height=w->position.ymax-w->position.ymin;
+    drawFillRect(win, w->context.button->bg_color, w->position.xmin, w->position.ymin, width, height);
+    drawRect(win, black,  w->position.xmin,  w->position.ymin, width, height);
+    drawString(win, w->position.xmin,  w->position.ymin, w->context.button->text,  w->context.button->color, width);
 }

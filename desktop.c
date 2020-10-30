@@ -31,10 +31,10 @@ int main()
     int lastTime=0;
     while (1)
     {
+        UI_updateWindow(&desktop);
         int currentTime=uptime();
         if (currentTime-lastTime>=2)
         {
-            UI_updateWindow(&desktop);
             updateScreen();
             lastTime=currentTime;
         }
