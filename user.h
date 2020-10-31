@@ -46,17 +46,24 @@ void free(void*);
 int atoi(const char*);
 
 //window_manager.c
+int GUI_createPopupWindow(struct window*, int);
+int GUI_closePopupWindow(struct window*);
 int GUI_createWindow(struct window*, const char*);
 int GUI_closeWindow(struct window*);
 int GUI_maximizeWindow(struct window*);
 int GUI_minimizeWindow(struct window*);
 int GUI_getMessage(int, struct message *);
+int GUI_getPopupMessage(struct message *);
 void GUI_updateScreen();
+void GUI_turnoffScreen();
 
 // themis_ui.c
+void createPopupWindow(struct window *, int);
+void closePopupWindow(struct window *);
 void createWindow(struct window *, const char*);
 void closeWindow(struct window *);
 void updateWindow(struct window*);
+void updatePopupWindow(struct window*);
 int addButtonWidget(struct window *win,struct  RGBA c, struct RGBA bc, char* text, int x, int y, int w, int h, Handler handler);
 
 void drawFillRect(struct window *win, struct RGBA color, int x, int y, int width, int height);

@@ -4,6 +4,9 @@
 #define MSG_BUF_SIZE 50
 #define MAX_TITLE_LEN 50
 #define TITLE_HEIGHT 28
+#define DOCK_HEIGHT 36
+#define START_ICON_WIDTH 72
+#define SHOW_DESKTOP_ICON_WIDTH 10
 
 #include "msg.h"
 
@@ -26,6 +29,7 @@ typedef struct kernel_window
 	struct msg_buf msg_buf;
 	char title[MAX_TITLE_LEN];
 	int minimized;
+	int hasTitleBar;
 
 } kernel_window;
 

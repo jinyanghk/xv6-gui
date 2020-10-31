@@ -23,6 +23,9 @@
 #define WM_WINDOW_MINIMIZE 101
 #define WM_WINDOW_MAXIMIZE 102
 
+#define WM_POPUP_WINDOW_OPEN 103
+#define WM_POPUP_WINDOW_CLOSE 104
+
 typedef struct message {
 	int msg_type;
 	int params[10];

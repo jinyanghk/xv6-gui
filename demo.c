@@ -27,6 +27,7 @@ int main()
     window desktop2;
     desktop2.width = 400;
     desktop2.height = 200;
+    desktop2.hasTitleBar = 1;
     createWindow(&desktop2, "Demo Program");
 
     struct RGBA color;
@@ -42,12 +43,16 @@ int main()
     desktopColor.B = 244;
     desktopColor.A = 250;
     addButtonWidget(&desktop2, desktopColor, color, "button", 10, 150, 50, 25, buttonHandler);
+    
 
     int startTime=uptime();
-    while (1)
+    while (desktop2.handler!=-1)
     {
         if(uptime()-startTime>600) {
             drawString(&desktop2, 10, 40, "hello world again", color, 200);
+        }
+        if(uptime()-startTime>1200) {
+            //GUI_closeWindow(&desktop2);
         }
         updateWindow(&desktop2);
         

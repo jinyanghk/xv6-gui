@@ -106,9 +106,13 @@ extern int sys_uptime(void);
 extern int sys_GUI_createWindow(void);
 extern int sys_GUI_closeWindow(void);
 extern int sys_GUI_getMessage(void);
+extern int sys_GUI_getPopupMessage(void);
 extern int sys_GUI_updateScreen(void);
+extern int sys_GUI_turnoffScreen(void);
 extern int sys_GUI_maximizeWindow(void);
 extern int sys_GUI_minimizeWindow(void);
+extern int sys_GUI_createPopupWindow(void);
+extern int sys_GUI_closePopupWindow(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -135,9 +139,13 @@ static int (*syscalls[])(void) = {
 [SYS_GUI_createWindow] sys_GUI_createWindow,
 [SYS_GUI_closeWindow] sys_GUI_closeWindow,
 [SYS_GUI_getMessage] sys_GUI_getMessage,
+[SYS_GUI_getPopupMessage] sys_GUI_getPopupMessage,
 [SYS_GUI_updateScreen] sys_GUI_updateScreen,
+[SYS_GUI_turnoffScreen] sys_GUI_turnoffScreen,
 [SYS_GUI_maximizeWindow] sys_GUI_maximizeWindow,
 [SYS_GUI_minimizeWindow] sys_GUI_minimizeWindow,
+[SYS_GUI_createPopupWindow] sys_GUI_createPopupWindow,
+[SYS_GUI_closePopupWindow] sys_GUI_closePopupWindow,
 };
 
 void

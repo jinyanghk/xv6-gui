@@ -191,6 +191,7 @@ UPROGS=\
 	_init\
 	_desktop\
 	_demo\
+	_startWindow\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

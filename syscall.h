@@ -26,3 +26,7 @@
 #define SYS_GUI_updateScreen 25
 #define SYS_GUI_maximizeWindow 26
 #define SYS_GUI_minimizeWindow 27
+#define SYS_GUI_turnoffScreen 27
+#define SYS_GUI_createPopupWindow 28
+#define SYS_GUI_closePopupWindow 29
+#define SYS_GUI_getPopupMessage 30

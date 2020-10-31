@@ -2,6 +2,7 @@
 
 #define MAX_WIDTH 800
 #define MAX_HEIGHT 600
+
 #define MAX_WIDGET_SIZE 50
 #define MAX_SHORT_STRLEN 50
 
@@ -41,6 +42,8 @@ typedef struct Widget {
 } Widget;
 
 typedef struct window {
+    win_rect initialPosition;
+    int hasTitleBar;
     struct RGB *window_buf;
     int width;
     int height;

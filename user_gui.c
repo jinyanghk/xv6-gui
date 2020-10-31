@@ -9,11 +9,47 @@
 #include "fs.h"
 #include "gui.h"
 
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
+
 void drawButtonWidget(window *win, Widget *w);
 
 int isInRect(int xmin, int ymin, int xmax, int ymax, int x, int y)
 {
     return (x >= xmin && x <= xmax && y >= ymin && y <= ymax);
+}
+
+void createPopupWindow(window *win, int caller)
+{
+
+    int width = win->width;
+    int height = win->height;
+
+    win->window_buf = malloc(width * height * 3);
+    if (!win->window_buf)
+    {
+        return;
+    }
+    memset(win->window_buf, 255, height * width * 3);
+    win->widgetlisthead = -1;
+    win->widgetlisttail = -1;
+    int i;
+    for (i = 0; i < MAX_WIDGET_SIZE; ++i)
+    {
+        win->widgets[i].next = i;
+        win->widgets[i].prev = i;
+    }
+    win->needsRepaint = 1;
+    win->hasTitleBar = 0;
+    //initlock(&win->wmlock, "wmlock");
+    GUI_createPopupWindow(win, caller);
+}
+
+void closePopupWindow(window *win)
+{
+    free(win->window_buf);
+    GUI_closePopupWindow(win);
+    exit();
 }
 
 void createWindow(window *win, const char *title)
@@ -37,6 +73,10 @@ void createWindow(window *win, const char *title)
         win->widgets[i].prev = i;
     }
     win->needsRepaint = 1;
+    if (win->hasTitleBar != 0)
+    {
+        win->hasTitleBar = 1;
+    }
     //initlock(&win->wmlock, "wmlock");
     GUI_createWindow(win, title);
 }
@@ -66,7 +106,7 @@ void updateWindow(window *win)
         //TODO: check widgets to determine
         if (msg.msg_type != 0)
         {
-            //printf(1, "message is %d\n", msg.msg_type);
+            printf(1, "message is %d\n", msg.msg_type);
             printf(1, "mouse at %d, %d\n", msg.params[0], msg.params[1]);
         }
         if (msg.msg_type == WM_WINDOW_CLOSE)
@@ -80,6 +120,51 @@ void updateWindow(window *win)
         else if (msg.msg_type == WM_WINDOW_MAXIMIZE)
         {
             GUI_maximizeWindow(win);
+        }
+        else
+        {
+            int mouse_x = msg.params[0];
+            int mouse_y = msg.params[1];
+
+            for (int p = win->widgetlisttail; p != -1; p = win->widgets[p].prev)
+            {
+                if (isInRect(win->widgets[p].position.xmin, win->widgets[p].position.ymin, win->widgets[p].position.xmax, win->widgets[p].position.ymax, mouse_x, mouse_y))
+                {
+                    win->widgets[p].handler(&msg);
+                    break;
+                }
+            }
+        }
+    }
+    else
+    {
+        win->needsRepaint = 0;
+    }
+    return;
+}
+
+void updatePopupWindow(window *win)
+{
+    if (win->needsRepaint)
+    {
+        for (int p = win->widgetlisthead; p != -1; p = win->widgets[p].next)
+        {
+            drawButtonWidget(win, &win->widgets[p]);
+        }
+    }
+
+    message msg;
+    if (GUI_getPopupMessage(&msg) == 0)
+    {
+        win->needsRepaint = 1;
+        if (msg.msg_type != 0)
+        {
+            printf(1, "message is %d\n", msg.msg_type);
+            printf(1, "mouse at %d, %d\n", msg.params[0], msg.params[1]);
+        }
+        if (msg.msg_type == WM_WINDOW_CLOSE)
+        {
+            closePopupWindow(win);
         }
         else
         {
