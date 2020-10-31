@@ -35,9 +35,7 @@ static struct
 kernel_window desktopWindow;
 
 static int windowlisthead, windowlisttail;
-static int desktopHandler = -1;
-//static int focus;
-//static int frontcnt;
+static int desktopId = -1;
 
 void createRectByCoord(win_rect *rect, int xmin, int ymin, int xmax, int ymax)
 {
@@ -55,7 +53,7 @@ void createRectBySize(win_rect *rect, int xmin, int ymin, int width, int height)
 	rect->ymax = ymin + height;
 }
 
-int findNextAvailable()
+int findNextAvailableWindowId()
 {
 	for (int i = 0; i < MAX_WINDOW_CNT; i++)
 	{
@@ -67,19 +65,19 @@ int findNextAvailable()
 	return -1;
 }
 
-void addToListTail(int *tail, int idx)
+void addToWindowList(int idx)
 {
-	windowlist[idx].prev = *tail;
+	windowlist[idx].prev = windowlisttail;
 	windowlist[idx].next = -1;
-	if (*tail != -1)
-		windowlist[*tail].next = idx;
-	*tail = idx;
+	if (windowlisttail != -1)
+		windowlist[windowlisttail].next = idx;
+	windowlisttail = idx;
 }
 
-void removeFromList(int *tail, int idx)
+void removeFromWindowList(int idx)
 {
-	if (*tail == idx)
-		*tail = windowlist[*tail].prev;
+	if (windowlisttail == idx)
+		windowlisttail = windowlist[windowlisttail].prev;
 	if (windowlist[idx].prev != -1)
 		windowlist[windowlist[idx].prev].next = windowlist[idx].next;
 	if (windowlist[idx].next != -1)
@@ -116,7 +114,7 @@ int dispatchMessage(msg_buf *buf, message *msg)
 
 //return non-zero if buf is empty
 int getMessage(msg_buf *buf, message *result)
-{	
+{
 	if (buf->cnt == 0)
 		return 1;
 	--buf->cnt;
@@ -205,15 +203,7 @@ void focusWindow(int winId)
 		windowlist[nextWin].prev = prevWin;
 	}
 
-	addToListTail(&windowlisttail, winId);
-	/*
-	switchuvm(windowlist[winId].proc);
-	if (myproc() == 0)
-		switchkvm();
-	else
-		switchuvm(myproc());
-	*/
-	//debugPrintWindowList();
+	addToWindowList(winId);
 }
 
 void moveFocusWindow(int dx, int dy)
@@ -224,17 +214,53 @@ void moveFocusWindow(int dx, int dy)
 	windowlist[windowlisttail].wnd.position.ymax += dy;
 }
 
+void handleDesktopDockClick(int mouse_x)
+{
+	int p;
+	int windowCount = 0;
+	for (p = windowlisthead; p != -1; p = windowlist[p].next)
+	{
+		if (p != desktopId)
+		{
+			windowCount++;
+		}
+	}
+	if (windowCount > 0)
+	{
+		int xStart = 5;
+		int barWidth = SCREEN_WIDTH / (windowCount + 1);
+		for (p = windowlisthead; p != -1; p = windowlist[p].next)
+		{
+			if (p != desktopId)
+			{
+				if (mouse_x > xStart + 1 && mouse_x <= xStart + barWidth - 1)
+				{
+					if (windowlist[p].wnd.minimized)
+					{
+						message newmsg;
+						newmsg.msg_type = WM_WINDOW_MAXIMIZE;
+						dispatchMessage(&windowlist[p].wnd.msg_buf, &newmsg);
+					}
+					else
+					{
+						focusWindow(p);
+					}
+					break;
+				}
+				xStart += barWidth;
+			}
+		}
+	}
+}
+
 void wmHandleMessage(message *msg)
 {
 	acquire(&wmlock);
 
-	//memset(screen, SCREEN_WIDTH * SCREEN_HEIGHT * 3, 0);
-	//memset(screen_buf1, SCREEN_WIDTH * SCREEN_HEIGHT * 3, 0);
 	message newmsg;
 	switch (msg->msg_type)
 	{
 	case M_MOUSE_MOVE:
-		//cprintf("mouse moved %d, %d\n", msg->params[0], msg->params[1]);
 		wm_last_mouse_pos = wm_mouse_pos;
 		if (msg->params[0] > -SCREEN_WIDTH && msg->params[0] < SCREEN_WIDTH)
 		{
@@ -259,24 +285,20 @@ void wmHandleMessage(message *msg)
 			moveFocusWindow(wm_mouse_pos.x - wm_last_mouse_pos.x, wm_mouse_pos.y - wm_last_mouse_pos.y);
 		}
 		break;
-	case M_MOUSE_DOWN:
-		//debugPrintWindowList();
-		//cprintf("mouse at %d, %d\n", wm_mouse_pos.x, wm_mouse_pos.y);
-		//handle focus changes
-		;
+	case M_MOUSE_DOWN:;
 		int p = windowlisttail;
 		for (; p != -1; p = windowlist[p].prev)
 		{
 
 			kernel_window *win = &windowlist[p].wnd;
-			if (p != desktopHandler && isInRect(win->position.xmin, win->position.ymin - TITLE_HEIGHT, win->position.xmax, win->position.ymax, wm_mouse_pos.x, wm_mouse_pos.y))
+			if (p != desktopId && isInRect(win->position.xmin, win->position.ymin - TITLE_HEIGHT, win->position.xmax, win->position.ymax, wm_mouse_pos.x, wm_mouse_pos.y))
 			{
 				focusWindow(p);
 				break;
 			}
 		}
 		if (p == -1)
-			focusWindow(desktopHandler);
+			focusWindow(desktopId);
 
 		kernel_window *win = &windowlist[windowlisttail].wnd;
 		if (isInRect(win->position.xmin, win->position.ymin - TITLE_HEIGHT, win->position.xmax, win->position.ymin, wm_mouse_pos.x, wm_mouse_pos.y))
@@ -284,6 +306,13 @@ void wmHandleMessage(message *msg)
 			if (wm_mouse_pos.x + 30 > win->position.xmax)
 			{
 				newmsg.msg_type = WM_WINDOW_CLOSE;
+				dispatchMessage(&windowlist[windowlisttail].wnd.msg_buf, &newmsg);
+			}
+			else if (wm_mouse_pos.x + 60 > win->position.xmax && wm_mouse_pos.x + 30 <= win->position.xmax)
+			{
+				//not nessasary for current design, we could just minimize the window here
+				//but we may want minimized window to halt updating
+				newmsg.msg_type = WM_WINDOW_MINIMIZE;
 				dispatchMessage(&windowlist[windowlisttail].wnd.msg_buf, &newmsg);
 			}
 			else
@@ -294,6 +323,13 @@ void wmHandleMessage(message *msg)
 		if (isInRect(win->position.xmin, win->position.ymin, win->position.xmax, win->position.ymax, wm_mouse_pos.x, wm_mouse_pos.y))
 		{
 			clickedOnContent = 1;
+			if (windowlisttail == desktopId)
+			{
+				if (wm_mouse_pos.y >= SCREEN_HEIGHT - 1.2 * TITLE_HEIGHT && wm_mouse_pos.y <= SCREEN_HEIGHT)
+				{
+					handleDesktopDockClick(wm_mouse_pos.x);
+				}
+			}
 		}
 
 		break;
@@ -302,15 +338,14 @@ void wmHandleMessage(message *msg)
 	case M_MOUSE_LEFT_CLICK:
 	case M_MOUSE_RIGHT_CLICK:
 	case M_MOUSE_DBCLICK:
-		
+
 		if (clickedOnContent)
 		{
 			clickedOnContent = 0;
-			newmsg.msg_type=msg->msg_type;
+			newmsg.msg_type = msg->msg_type;
 			newmsg.params[0] = wm_mouse_pos.x - windowlist[windowlisttail].wnd.position.xmin;
 			newmsg.params[1] = wm_mouse_pos.y - windowlist[windowlisttail].wnd.position.ymin;
-			//newmsg.params[2] = msg->params[0];
-			cprintf("message type %d, dispatch to %d\n", msg->msg_type, windowlisttail);
+			//cprintf("message type %d, dispatch to %d\n", msg->msg_type, windowlisttail);
 			dispatchMessage(&windowlist[windowlisttail].wnd.msg_buf, &newmsg);
 		}
 	case M_MOUSE_UP:
@@ -331,23 +366,25 @@ void wmHandleMessage(message *msg)
 	default:
 		break;
 	}
-	//memmove(screen, screen_buf1, SCREEN_WIDTH * SCREEN_HEIGHT * 3);
 	release(&wmlock);
 }
 
 void drawWindowBar(struct RGB *dst, kernel_window *win, struct RGBA barcolor)
 {
-	struct RGBA closecolor, txtcolor;
+	struct RGBA closecolor, minimizecolor, txtcolor;
 	closecolor.R = 219;
 	closecolor.G = 68;
 	closecolor.B = 55;
 	closecolor.A = 255;
+	minimizecolor.R = minimizecolor.G = minimizecolor.B = 120;
+	minimizecolor.A = 255;
 	txtcolor.R = txtcolor.G = txtcolor.B = txtcolor.A = 255;
 	int xmin = win->position.xmin;
 	int xmax = win->position.xmax;
 	int ymin = win->position.ymin - TITLE_HEIGHT;
 	int ymax = win->position.ymin;
-	drawRectByCoord(dst, xmin, ymin, xmax - TITLE_HEIGHT, ymax, barcolor);
+	drawRectByCoord(dst, xmin, ymin, xmax - 2 * TITLE_HEIGHT, ymax, barcolor);
+	drawRectByCoord(dst, xmax - 2 * TITLE_HEIGHT, ymin, xmax - TITLE_HEIGHT, ymax, minimizecolor);
 	drawRectByCoord(dst, xmax - TITLE_HEIGHT, ymin, xmax, ymax, closecolor);
 	drawString(dst, xmin + 5, ymin + 3, win->title, txtcolor);
 }
@@ -364,8 +401,41 @@ void drawWindow(kernel_window *win, int drawTitleBar)
 	{
 		drawWindowBar(screen_buf1, win, titleBarColor);
 	}
+}
 
-	//drawRectByCoord(screen_buf1, win->position.xmin, win->position.ymin - TITLE_HEIGHT, win->position.xmax, win->position.ymin, titleBarColor);
+void drawDesktopDock(struct RGB *dst)
+{
+	struct RGBA dockColor;
+	dockColor.R = 15;
+	dockColor.G = 157;
+	dockColor.B = 88;
+	dockColor.A = 255;
+	drawRectByCoord(dst, 0, SCREEN_HEIGHT - TITLE_HEIGHT * 1.2, SCREEN_WIDTH, SCREEN_HEIGHT, dockColor);
+	struct RGBA txtcolor;
+	txtcolor.R = txtcolor.G = txtcolor.B = txtcolor.A = 255;
+	int p;
+	int windowCount = 0;
+	for (p = windowlisthead; p != -1; p = windowlist[p].next)
+	{
+		if (p != desktopId)
+		{
+			windowCount++;
+		}
+	}
+	if (windowCount > 0)
+	{
+		int xStart = 5;
+		int barWidth = SCREEN_WIDTH / (windowCount + 1);
+		for (p = windowlisthead; p != -1; p = windowlist[p].next)
+		{
+			if (p != desktopId)
+			{
+				drawStringWithMaxWidth(dst, xStart + 5, SCREEN_HEIGHT - TITLE_HEIGHT * 0.9, barWidth - 2, windowlist[p].wnd.title, txtcolor);
+				drawRectByCoord(dst, xStart + barWidth - 2, SCREEN_HEIGHT - TITLE_HEIGHT * 1.2, xStart + barWidth, SCREEN_HEIGHT, txtcolor);
+				xStart += barWidth;
+			}
+		}
+	}
 }
 
 void updateScreen()
@@ -374,47 +444,27 @@ void updateScreen()
 	acquire(&wmlock);
 
 	memset(screen_buf1, 255, screen_size);
-	drawWindow(&windowlist[desktopHandler].wnd, 0);
-
-	//message newmessage;
-	//newmessage.msg_type = WM_WINDOW_REDRAW;
-	//dispatchMessage(&windowlist[windowlisthead].wnd.msg_buf, &newmessage);
+	drawWindow(&windowlist[desktopId].wnd, 0);
+	drawDesktopDock(screen_buf1);
 
 	int p;
 	for (p = windowlisthead; p != -1; p = windowlist[p].next)
 	{
-		if (p != desktopHandler)
+		if (p != desktopId && windowlist[p].wnd.minimized==0)
 		{
+
 			switchuvm(windowlist[p].proc);
 			drawWindow(&windowlist[p].wnd, 1);
-			if (myproc() == 0)
-				switchkvm();
-			else
-				switchuvm(windowlist[desktopHandler].proc);
 		}
 	}
-	
+	if (myproc() == 0)
+		switchkvm();
+	else
+		switchuvm(windowlist[desktopId].proc);
 
 	drawMouse(screen_buf1, 0, wm_mouse_pos.x, wm_mouse_pos.y);
 	memmove(screen, screen_buf1, screen_size);
 
-	release(&wmlock);
-}
-
-void updateWindow(int handler)
-{
-
-	acquire(&wmlock);
-	if (handler != desktopHandler)
-	{
-		drawWindow(&windowlist[handler].wnd, 1);
-	}
-	if (windowlist[handler].next != -1)
-	{
-		message newmessage;
-		newmessage.msg_type = WM_WINDOW_REDRAW;
-		dispatchMessage(&windowlist[windowlist[handler].next].wnd.msg_buf, &newmessage);
-	}
 	release(&wmlock);
 }
 
@@ -424,7 +474,7 @@ int createWindow(window_p window, char *title)
 
 	acquire(&wmlock);
 
-	int winId = findNextAvailable();
+	int winId = findNextAvailableWindowId();
 	if (winId == -1)
 		return 1;
 
@@ -433,11 +483,11 @@ int createWindow(window_p window, char *title)
 		windowlisthead = winId;
 	}
 
-	addToListTail(&windowlisttail, winId);
+	addToWindowList(winId);
 
-	if (desktopHandler == -1)
+	if (desktopId == -1)
 	{
-		desktopHandler = winId;
+		desktopId = winId;
 		createRectByCoord(&windowlist[winId].wnd.position, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	}
 	else
@@ -448,7 +498,8 @@ int createWindow(window_p window, char *title)
 	windowlist[winId].wnd.window_buf = window->window_buf;
 	window->handler = winId;
 	windowlist[winId].proc = myproc();
-	cprintf("current proc %d\n", windowlist[winId].proc);
+	windowlist[winId].wnd.minimized = 0;
+	//cprintf("current proc %d\n", windowlist[winId].proc);
 	initMessageQueue(&windowlist[winId].wnd.msg_buf);
 
 	uint len = strlen(title);
@@ -470,7 +521,7 @@ int closeWindow(window_p window)
 
 	int winId = window->handler;
 
-	removeFromList(&windowlisttail, winId);
+	removeFromWindowList(winId);
 	windowlist[winId].prev = winId;
 	windowlist[winId].next = winId;
 	initMessageQueue(&windowlist[winId].wnd.msg_buf);
@@ -480,14 +531,43 @@ int closeWindow(window_p window)
 		focusWindow(winId - 1);
 	}
 
-	debugPrintWindowList();
+	//debugPrintWindowList();
 
 	release(&wmlock);
 
 	return 0;
 }
 
-int sys_createWindow()
+int minimizeWindow(window_p window)
+{
+
+	acquire(&wmlock);
+
+	int winId = window->handler;
+
+	windowlist[winId].wnd.minimized = 1;
+
+	release(&wmlock);
+
+	return 0;
+}
+
+int maximizeWindow(window_p window)
+{
+
+	acquire(&wmlock);
+
+	int winId = window->handler;
+
+	windowlist[winId].wnd.minimized = 0;
+	focusWindow(winId);
+
+	release(&wmlock);
+
+	return 0;
+}
+
+int sys_GUI_createWindow()
 {
 	window *wnd;
 	char *title;
@@ -496,14 +576,28 @@ int sys_createWindow()
 	return createWindow(wnd, title);
 }
 
-int sys_closeWindow()
+int sys_GUI_closeWindow()
 {
 	window *wnd;
 	argptr(0, (char **)&wnd, sizeof(window));
 	return closeWindow(wnd);
 }
 
-int sys_getMessage()
+int sys_GUI_minimizeWindow()
+{
+	window *wnd;
+	argptr(0, (char **)&wnd, sizeof(window));
+	return minimizeWindow(wnd);
+}
+
+int sys_GUI_maximizeWindow()
+{
+	window *wnd;
+	argptr(0, (char **)&wnd, sizeof(window));
+	return maximizeWindow(wnd);
+}
+
+int sys_GUI_getMessage()
 {
 	int h;
 	message *res;
@@ -516,16 +610,8 @@ int sys_getMessage()
 	return getMessage(&windowlist[h].wnd.msg_buf, res);
 }
 
-int sys_updateScreen()
+int sys_GUI_updateScreen()
 {
 	updateScreen();
-	return 0;
-}
-
-int sys_updateWindow()
-{
-	int h;
-	argint(0, &h);
-	updateWindow(h);
 	return 0;
 }

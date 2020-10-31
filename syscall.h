@@ -20,8 +20,9 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
-#define SYS_createWindow 22
-#define SYS_closeWindow 23
-#define SYS_getMessage 24
-#define SYS_updateScreen 25
-#define SYS_updateWindow 26
+#define SYS_GUI_createWindow 22
+#define SYS_GUI_closeWindow 23
+#define SYS_GUI_getMessage 24
+#define SYS_GUI_updateScreen 25
+#define SYS_GUI_maximizeWindow 26
+#define SYS_GUI_minimizeWindow 27

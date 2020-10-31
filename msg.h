@@ -20,7 +20,8 @@
 #define M_MOUSE_DBCLICK 8
 
 #define WM_WINDOW_CLOSE 100
-#define WM_WINDOW_REDRAW 101
+#define WM_WINDOW_MINIMIZE 101
+#define WM_WINDOW_MAXIMIZE 102
 
 typedef struct message {
 	int msg_type;

@@ -6,6 +6,8 @@ struct RGB;
 struct message;
 struct window;
 
+typedef void(*Handler)(struct message *msg);
+
 // system calls
 int fork(void);
 int exit(void) __attribute__((noreturn));
@@ -28,7 +30,6 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-int drawline(void);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -45,16 +46,18 @@ void free(void*);
 int atoi(const char*);
 
 //window_manager.c
-int createWindow(struct window*, const char*);
-int closeWindow(struct window*);
-int getMessage(int, struct message *);
-void updateScreen();
-void updateWindow(int );
+int GUI_createWindow(struct window*, const char*);
+int GUI_closeWindow(struct window*);
+int GUI_maximizeWindow(struct window*);
+int GUI_minimizeWindow(struct window*);
+int GUI_getMessage(int, struct message *);
+void GUI_updateScreen();
 
 // themis_ui.c
-void UI_createWindow(struct window *, const char*);
-void UI_closeWindow(struct window *);
-void UI_updateWindow(struct window*);
+void createWindow(struct window *, const char*);
+void closeWindow(struct window *);
+void updateWindow(struct window*);
+int addButtonWidget(struct window *win,struct  RGBA c, struct RGBA bc, char* text, int x, int y, int w, int h, Handler handler);
 
 void drawFillRect(struct window *win, struct RGBA color, int x, int y, int width, int height);
 void drawString(struct window *win, int x, int y, char *str, struct RGBA color, int width);

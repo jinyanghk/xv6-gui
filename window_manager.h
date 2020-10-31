@@ -25,6 +25,7 @@ typedef struct kernel_window
 	struct RGB *window_buf;
 	struct msg_buf msg_buf;
 	char title[MAX_TITLE_LEN];
+	int minimized;
 
 } kernel_window;
 

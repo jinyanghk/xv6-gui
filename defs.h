@@ -30,6 +30,7 @@ extern struct RGB* screen_buf1;
 void            initGUI(void);
 int             drawCharacter(struct RGB*, int, int, char, struct RGBA);
 void            drawString(struct RGB*, int, int, char *, struct RGBA);
+void            drawStringWithMaxWidth(struct RGB*, int, int, int, char *, struct RGBA);
 void            drawMouse(struct RGB*, int, int, int);
 void            clearMouse(struct RGB*, struct RGB*,int, int);
 void            drawRect(struct RGB*, int, int, int, int, struct RGBA);

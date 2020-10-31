@@ -132,6 +132,15 @@ void drawString(RGB *buf, int x, int y, char *str, RGBA color) {
     }
 }
 
+void drawStringWithMaxWidth(RGB *buf, int x, int y, int width, char *str, RGBA color) {
+    int offset_x = 0;
+
+    while (*str != '\0' && offset_x+CHARACTER_WIDTH<=width) {
+        offset_x += drawCharacter(buf, x + offset_x, y, *str, color);
+        str++;
+    }
+}
+
 void drawImage(RGB *buf, RGBA *img, int x, int y, int width, int height, int max_x, int max_y) {
     int i, j;
     RGB *t;

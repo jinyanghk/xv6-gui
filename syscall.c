@@ -103,12 +103,12 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
-extern int sys_drawline(void);
-extern int sys_createWindow(void);
-extern int sys_closeWindow(void);
-extern int sys_getMessage(void);
-extern int sys_updateScreen(void);
-extern int sys_updateWindow(void);
+extern int sys_GUI_createWindow(void);
+extern int sys_GUI_closeWindow(void);
+extern int sys_GUI_getMessage(void);
+extern int sys_GUI_updateScreen(void);
+extern int sys_GUI_maximizeWindow(void);
+extern int sys_GUI_minimizeWindow(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -132,11 +132,12 @@ static int (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
-[SYS_createWindow] sys_createWindow,
-[SYS_closeWindow] sys_closeWindow,
-[SYS_getMessage] sys_getMessage,
-[SYS_updateScreen] sys_updateScreen,
-[SYS_updateWindow] sys_updateWindow,
+[SYS_GUI_createWindow] sys_GUI_createWindow,
+[SYS_GUI_closeWindow] sys_GUI_closeWindow,
+[SYS_GUI_getMessage] sys_GUI_getMessage,
+[SYS_GUI_updateScreen] sys_GUI_updateScreen,
+[SYS_GUI_maximizeWindow] sys_GUI_maximizeWindow,
+[SYS_GUI_minimizeWindow] sys_GUI_minimizeWindow,
 };
 
 void
