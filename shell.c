@@ -103,55 +103,45 @@ void inputHandler(Widget *w, message *msg)
         char buffer[MAX_LONG_STRLEN];
         if (c == '\n' && charCount > 0)
         {
-            debugPrintWidgetList(&desktop);
-            //printf(1, "inputfield content\n");
-            //printf(1,w->context.inputfield->text);
             memset(buffer, 0, MAX_LONG_STRLEN);
             strcpy(buffer, w->context.inputfield->text);
-            //printf(1, "shell read from %d writing to %d, %s\n", rfd, wfd, buffer);
 
             if (write(wfd, buffer, strlen(buffer)) != strlen(buffer))
             {
                 printf(1, "gui pipe write: failed\n");
             }
             else
-            {   
-                memset(read_buf, 0, READBUFFERSIZE);
+            {
+                
                 int n;
                 // Read the result until get the initial string "$ "
-
-                while (1)
+                memset(read_buf, 0, READBUFFERSIZE);
+                while ((n = read(rfd, read_buf, READBUFFERSIZE)) > 0)
                 {
-                    if ((n = read(rfd, read_buf, READBUFFERSIZE)) > 0)
+
+                    if (read_buf[n - 2] == init_string[0] && read_buf[n - 1] == init_string[1])
                     {
-                        //printf(1, "readed back %d \n", n);
-                        if (read_buf[n - 2] == init_string[0] && read_buf[n - 1] == init_string[1])
-                        {
-                            memset(read_buf + n - 2, '\0', 1);
-                            break;
-                        }
+                        memset(read_buf + n - 2, '\0', 1);
+                        break;
                     }
+                    memset(read_buf, 0, READBUFFERSIZE);
                 }
             }
-        
+
+             int respondLineCount = getMouseYFromOffset(read_buf, width, strlen(read_buf));
+            readCommand = addTextWidget(&desktop, textColor, read_buf, 0, totallines * CHARACTER_HEIGHT, width, respondLineCount * CHARACTER_HEIGHT, 1, emptyHandler);
+            totallines += respondLineCount;
 
             int commandLindCount = getMouseYFromOffset(buffer, width, strlen(buffer)) + 1;
             removeWidget(&desktop, commandWidgetId);
             addTextWidget(&desktop, commandColor, buffer, 0, totallines * CHARACTER_HEIGHT, width, commandLindCount * CHARACTER_HEIGHT, 1, emptyHandler);
             totallines += commandLindCount;
 
-
-            int respondLineCount = getMouseYFromOffset(read_buf, width, strlen(read_buf));
-            readCommand = addTextWidget(&desktop, textColor, read_buf, 0, totallines * CHARACTER_HEIGHT, width, respondLineCount * CHARACTER_HEIGHT, 1, emptyHandler);
-            totallines += respondLineCount;
-
-            
             commandWidgetId = addInputFieldWidget(&desktop, commandColor, "", 0, totallines * CHARACTER_HEIGHT, width, height, 1, inputHandler);
-            printf(1, "total line is %d high\n", totallines * CHARACTER_HEIGHT);
+
             if (totallines * CHARACTER_HEIGHT - desktop.height > 0)
             {
                 desktop.scrollOffset = totallines * CHARACTER_HEIGHT - desktop.height + CHARACTER_HEIGHT;
-                //desktop.needsRepaint = 1;
             }
         }
         else
@@ -169,7 +159,7 @@ int main(int argc, char *argv[])
     desktop.width = 400;
     desktop.height = 407;
     desktop.hasTitleBar = 1;
-    createWindow(&desktop, "desktop");
+    createWindow(&desktop, "shell");
 
     bgColor.R = 255;
     bgColor.G = 255;
@@ -192,7 +182,6 @@ int main(int argc, char *argv[])
 
     while (1)
     {
-
         updateWindow(&desktop);
     }
 }

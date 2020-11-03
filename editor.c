@@ -33,9 +33,6 @@ void buttonHandler(Widget *widget, message *msg)
         }
         write(file, desktop.widgets[i].context.inputfield->text, 512);
         close(file);
-
-        //addButtonWidget(&desktop, desktopColor, color, "button", 10, 10+buttonCount*35, 50, 30, buttonHandler);
-        //buttonCount++;
     }
 }
 
@@ -44,15 +41,16 @@ void inputHandler(Widget *w, message *msg)
     int mouse_x = msg->params[0];
     int mouse_y = msg->params[1];
     int width = w->position.xmax - w->position.xmin;
+    printf(1, "mouse at %d, %d\n", mouse_x, mouse_y);
     //int height = w->position.ymax - w->position.ymin;
-    int charPerLine = width / CHARACTER_WIDTH;
+    //int charPerLine = width / CHARACTER_WIDTH;
     int charCount = strlen(w->context.inputfield->text);
     if (msg->msg_type == M_MOUSE_LEFT_CLICK)
     {
 
         int mouse_char_y = (mouse_y - w->position.ymin) / CHARACTER_HEIGHT;
         int mouse_char_x = (mouse_x - w->position.xmin) / CHARACTER_WIDTH;
-        int new_pos = mouse_char_y * charPerLine + mouse_char_x;
+        int new_pos = getInputOffsetFromMousePosition(w->context.inputfield->text, width, mouse_char_x, mouse_char_y);
         if (new_pos > charCount)
             new_pos = charCount;
         w->context.inputfield->current_pos = new_pos;
@@ -71,7 +69,7 @@ int main(int argc, char *argv[])
     desktop.width = 400;
     desktop.height = 300;
     desktop.hasTitleBar = 1;
-    createWindow(&desktop, "desktop");
+    createWindow(&desktop, "text editor");
 
     bgColor.R = 255;
     bgColor.G = 255;
@@ -88,17 +86,20 @@ int main(int argc, char *argv[])
     int file = -1;
     if (argc > 1)
     {
-        file = open(argv[1], 0);
         strcpy(filename, argv[1]);
+        file = open(filename, O_RDWR);
     }
     else
     {
-        strcpy(filename, "new.txt");
+        strcpy(filename, "/new.txt");
+        file = open(filename, O_CREATE);
     }
+            
 
-    addButtonWidget(&desktop, textColor, bgColor, "save", 10, 10, 50, 20, 1, buttonHandler);
+    addButtonWidget(&desktop, textColor, bgColor, "save", 10, 10, 50, 20, 0, buttonHandler);
 
     char initial[MAX_LONG_STRLEN]="Start typing...";
+    memset(initial, 0, MAX_LONG_STRLEN);
     if (file >= 0) {
         read(file, initial, MAX_LONG_STRLEN);
         close(file);

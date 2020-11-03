@@ -194,12 +194,12 @@ UPROGS=\
 	_shell\
 	_demo\
 	_startWindow\
-	_text_editor\
-	_file_explorer\
+	_editor\
+	_explorer\
 	_shell\
 
-fs.img: mkfs $(UPROGS)
-	./mkfs fs.img $(UPROGS)
+fs.img: mkfs README readme.txt $(UPROGS)
+	./mkfs fs.img README readme.txt $(UPROGS)
 
 -include *.d
 

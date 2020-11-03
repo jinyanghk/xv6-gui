@@ -8,6 +8,7 @@ void emptyHandler(Widget *w, message *msg) {
 
 int getInputOffsetFromMousePosition(char* str, int width, int mouse_x, int mouse_y) {
 
+    printf(1, "mouse int at %d, %d\n", mouse_x, mouse_y);
     int charPerLine = width / CHARACTER_WIDTH;
     int offset_x = 0;
     int offset_y = 0;
@@ -35,7 +36,7 @@ int getInputOffsetFromMousePosition(char* str, int width, int mouse_x, int mouse
         str++;
         current_pos++;
     }
-    return 0;
+    return current_pos;
 }
 
 int getMouseXFromOffset(char* str, int width, int offset) {
@@ -102,7 +103,7 @@ void inputFieldKeyHandler(Widget *w, message *msg)
     //if(charCount>500) return;
     int newChar = msg->params[0];
     //printf(1, "new Char %d\n", newChar);
-    if ((newChar >= ' ' && newChar <= '~'))
+    if ((newChar >= ' ' && newChar <= '~') || newChar =='\n')
     {
         char temp[MAX_LONG_STRLEN];
         strcpy(temp, w->context.inputfield->text + w->context.inputfield->current_pos);

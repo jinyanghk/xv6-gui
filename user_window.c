@@ -162,7 +162,6 @@ void updateWindow(window *win)
     if (GUI_getMessage(win->handler, &msg) == 0)
     {
         win->needsRepaint = 1;
-        //TODO: check widgets to determine
         if (msg.msg_type != 0)
         {
             //printf(1, "message is %d\n", msg.msg_type);
@@ -206,7 +205,7 @@ void updateWindow(window *win)
                             message newmsg;
                             newmsg.msg_type = msg.msg_type;
                             newmsg.params[0] = msg.params[0];
-                            newmsg.params[1] = msg.params[0] + win->scrollOffset;
+                            newmsg.params[1] = msg.params[1] + win->scrollOffset;
                             win->widgets[p].handler(&win->widgets[p], &newmsg);
                         }
 

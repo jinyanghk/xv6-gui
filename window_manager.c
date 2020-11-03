@@ -561,10 +561,12 @@ void updateScreen()
 		switchuvm(popupwindow.proc);
 		drawWindow(&popupwindow.wnd);
 	}
+	
 	if (myproc() == 0)
 		switchkvm();
 	else
 		switchuvm(windowlist[desktopId].proc);
+	
 
 	drawMouse(screen_buf1, 0, wm_mouse_pos.x, wm_mouse_pos.y);
 	memmove(screen, screen_buf1, screen_size);

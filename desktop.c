@@ -31,6 +31,28 @@ void buttonHandler(Widget *widget, message *msg)
         {
             printf(1, "fork new process\n");
             //char *argv2[] = {"text_editor"};
+            char *argv2[] = {"explorer"};
+            exec(argv2[0], argv2);
+            exit();
+        }
+
+        //addButtonWidget(&desktop, desktopColor, color, "button", 10, 10+buttonCount*35, 50, 30, buttonHandler);
+        //buttonCount++;
+    }
+}
+void button2Handler(Widget *widget, message *msg)
+{
+    if (msg->msg_type == M_MOUSE_DBCLICK)
+    {
+        RGBA clickedColor;
+        clickedColor.R = 76;
+        clickedColor.G = 160;
+        clickedColor.B = 255;
+        clickedColor.A = 255;
+        widget->context.button->bg_color = clickedColor;
+        if (fork() == 0)
+        {
+            printf(1, "fork new process\n");
             char *argv2[] = {"shell"};
             exec(argv2[0], argv2);
             exit();
@@ -88,7 +110,6 @@ void inputHandler(Widget *w, message *msg)
 int main(int argc, char *argv[])
 {
 
-    printf(1, "desktop at %x\n", &desktop);
     desktop.width = SCREEN_WIDTH;
     desktop.height = SCREEN_HEIGHT;
     desktop.initialPosition.xmin = 0;
@@ -112,16 +133,12 @@ int main(int argc, char *argv[])
 
     addButtonWidget(&desktop, desktopColor, color, "button", 10, 40, 50, 30, 0, buttonHandler);
 
+    addButtonWidget(&desktop, desktopColor, color, "button", 10, 80, 50, 30, 0, button2Handler);
+
     addButtonWidget(&desktop, desktopColor, color, "start", 5, SCREEN_HEIGHT - 30, 60, 25, 0, startWindowHandler);
 
-    addInputFieldWidget(&desktop, color, "button is \na\nlong\nline", 100, 40, 100, 100, 0, inputHandler);
-    
-    //removeWidget(&desktop, text);
-    //addInputFieldWidget(&desktop, color, "button is a long line", 100, 40, 100, 150, inputHandler);
-    //window desktop2;
-    //desktop2.width=400;
-    //desktop2.height=200;
-    //UI_createWindow(&desktop2, "desktop2");
+    //addInputFieldWidget(&desktop, color, "button is \na\nlong\nline", 100, 40, 100, 100, 0, inputHandler);
+
 
     int lastTime = 0;
     while (1)

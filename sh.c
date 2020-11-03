@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
     }
     //printf(2, "$ ");
     wait();
-    //dup(wfd);
+    dup(wfd);
   }
 
   exit();
