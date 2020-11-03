@@ -147,8 +147,7 @@ tags: $(OBJS) entryother.S _init
 vectors.S: vectors.pl
 	./vectors.pl > vectors.S
 
-ULIB = ulib.o usys.o printf.o umalloc.o user_gui.o
-
+ULIB = ulib.o usys.o printf.o umalloc.o user_gui.o user_window.o user_handler.o
 _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
 	$(OBJDUMP) -S $@ > $*.asm
@@ -190,11 +189,17 @@ mkfs: mkfs.c fs.h
 UPROGS=\
 	_init\
 	_desktop\
+	_ls\
+	_sh\
+	_shell\
 	_demo\
 	_startWindow\
+	_text_editor\
+	_file_explorer\
+	_shell\
 
-fs.img: mkfs README $(UPROGS)
-	./mkfs fs.img README $(UPROGS)
+fs.img: mkfs $(UPROGS)
+	./mkfs fs.img $(UPROGS)
 
 -include *.d
 

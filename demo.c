@@ -3,9 +3,10 @@
 #include "fcntl.h"
 #include "memlayout.h"
 #include "user_gui.h"
+#include "user_window.h"
 #include "gui.h"
 
-void buttonHandler(message *msg)
+void buttonHandler(Widget* widget, message *msg)
 {
     if (msg->msg_type == M_MOUSE_DBCLICK)
     {
@@ -35,24 +36,24 @@ int main()
     color.G = 68;
     color.B = 55;
     color.A = 255;
-    drawString(&desktop2, 10, 20, "hello world", color, 200);
+    drawString(&desktop2, "abcdefghijilmnopqrstuvwxyz", color, 10, 20, 200, 100);
 
     struct RGBA desktopColor;
     desktopColor.R = 66;
-    desktopColor.G = 130;
-    desktopColor.B = 244;
-    desktopColor.A = 250;
-    addButtonWidget(&desktop2, desktopColor, color, "button", 10, 150, 50, 25, buttonHandler);
+    desktopColor.G = 100;
+    desktopColor.B = 24;
+    desktopColor.A = 200;
+    addColorFillWidget(&desktop2, desktopColor, 0, 0, desktop2.width, desktop2.height, 0, emptyHandler);
+    addTextWidget(&desktop2, color, "button \n      button \n            button", 10, 150, 200, 70, 1, buttonHandler);
     
 
     int startTime=uptime();
     while (desktop2.handler!=-1)
     {
-        if(uptime()-startTime>600) {
-            drawString(&desktop2, 10, 40, "hello world again", color, 200);
-        }
-        if(uptime()-startTime>1200) {
-            //GUI_closeWindow(&desktop2);
+        if(uptime()-startTime>50) {
+            desktop2.scrollOffset +=CHARACTER_HEIGHT;
+            desktop2.needsRepaint=1;
+            startTime=uptime();
         }
         updateWindow(&desktop2);
         

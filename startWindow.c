@@ -3,6 +3,7 @@
 #include "fcntl.h"
 #include "memlayout.h"
 #include "user_gui.h"
+#include "user_window.h"
 #include "gui.h"
 
 #define SCREEN_WIDTH 800
@@ -10,7 +11,7 @@
 
 window startWindow;
 
-void buttonHandler(message *msg)
+void buttonHandler(Widget* widget, message *msg)
 {
     if (msg->msg_type == M_MOUSE_DBCLICK)
     {
@@ -50,7 +51,7 @@ int main(int argc, char *argv[])
     color.B = 55;
     color.A = 255;
 
-    addButtonWidget(&startWindow, desktopColor, color, "button", 10, 150, 50, 25, buttonHandler);
+    addButtonWidget(&startWindow, desktopColor, color, "button", 10, 150, 50, 25, 0, buttonHandler);
 
     //int startTime=uptime();
     while (1)

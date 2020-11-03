@@ -4,9 +4,10 @@ struct rtcdate;
 struct RGBA;
 struct RGB;
 struct message;
+struct Widget;
 struct window;
 
-typedef void(*Handler)(struct message *msg);
+typedef void(*Handler)(struct Widget *,  struct message *);
 
 // system calls
 int fork(void);
@@ -57,14 +58,34 @@ int GUI_getPopupMessage(struct message *);
 void GUI_updateScreen();
 void GUI_turnoffScreen();
 
-// themis_ui.c
+//user_window.c
+void debugPrintWidgetList(struct window *win);
 void createPopupWindow(struct window *, int);
 void closePopupWindow(struct window *);
 void createWindow(struct window *, const char*);
 void closeWindow(struct window *);
 void updateWindow(struct window*);
 void updatePopupWindow(struct window*);
-int addButtonWidget(struct window *win,struct  RGBA c, struct RGBA bc, char* text, int x, int y, int w, int h, Handler handler);
+int addButtonWidget(struct window *win,struct  RGBA c, struct RGBA bc, char* text, int x, int y, int w, int h, int, Handler handler);
+int addTextWidget(struct window *win, struct RGBA c, char *text, int x, int y, int w, int h,int, Handler handler);
+int addInputFieldWidget(struct window *win, struct RGBA c, char *text, int x, int y, int w, int h, int,Handler handler);
+int addColorFillWidget(struct window *win, struct RGBA c, int x, int y, int w, int h,int, Handler handler);
+int removeWidget(struct window *win, int index);
+int setWidgetHandler(struct window *win, int index,Handler handler);
 
+
+//user_gui.c
+void fillRect(struct RGB *buf, int x, int y, int width, int height, int max_x, int max_y, struct RGBA fill);
+
+void drawRect(struct window *win, struct RGB color, int x, int y, int width, int height);
 void drawFillRect(struct window *win, struct RGBA color, int x, int y, int width, int height);
-void drawString(struct window *win, int x, int y, char *str, struct RGBA color, int width);
+void drawString(struct window *win, char *str, struct RGBA color, int x, int y,  int width, int height);
+void draw24Image(struct window *win, struct RGB *img, int x, int y, int width, int height);
+void drawIcon(struct window* win, int icon, struct RGBA color,  int x, int y,int width, int height);
+
+//user_handler.c
+void emptyHandler(struct Widget *w, struct message *msg);
+int getInputOffsetFromMousePosition(char* str, int width, int mouse_x, int mouse_y);
+int getMouseXFromOffset(char* str, int width, int offset);
+int getMouseYFromOffset(char* str, int width, int offset);
+void inputFieldKeyHandler(struct Widget *w, struct  message *msg);

@@ -9,12 +9,9 @@
 #include "proc.h"
 #include "gui.h"
 
-#include "user_gui.h"
+#include "user_window.h"
 
 #include "window_manager.h"
-
-#define MAX_WIDTH 800
-#define MAX_HEIGHT 600
 
 int min(int x, int y) { return x < y ? x : y; }
 int max(int x, int y) { return x > y ? x : y; }
@@ -25,6 +22,7 @@ struct RGBA dockColor;
 struct RGBA closeColor;
 struct RGBA txtColor;
 struct RGBA minimizeColor;
+struct RGBA iconColor;
 
 #define MAX_WINDOW_CNT 50
 
@@ -155,6 +153,11 @@ void wmInit()
 	closeColor.B = 55;
 	closeColor.A = 255;
 
+	iconColor.R = 6;
+	iconColor.G = 6;
+	iconColor.B = 6;
+	iconColor.A = 255;
+
 	txtColor.R = txtColor.G = txtColor.B = txtColor.A = 255;
 	minimizeColor.R = minimizeColor.G = minimizeColor.B = 120;
 	minimizeColor.A = 255;
@@ -256,7 +259,7 @@ void handleDesktopDockClick(int mouse_x, message *msg)
 	if (windowCount > 0)
 	{
 		int xStart = START_ICON_WIDTH + 5;
-		int barWidth = (SCREEN_WIDTH - START_ICON_WIDTH - SHOW_DESKTOP_ICON_WIDTH) / (windowCount + 1);
+		int barWidth = min((SCREEN_WIDTH - START_ICON_WIDTH - SHOW_DESKTOP_ICON_WIDTH) / (windowCount + 1), DOCK_PROGRAM_NORMAL_WIDTH);
 		for (p = windowlisthead; p != -1; p = windowlist[p].next)
 		{
 			if (p != desktopId)
@@ -480,6 +483,8 @@ void drawWindowBar(struct RGB *dst, kernel_window *win, struct RGBA barcolor)
 	drawRectByCoord(dst, xmax - 2 * TITLE_HEIGHT, ymin, xmax - TITLE_HEIGHT, ymax, minimizeColor);
 	drawRectByCoord(dst, xmax - TITLE_HEIGHT, ymin, xmax, ymax, closeColor);
 	drawString(dst, xmin + 5, ymin + 3, win->title, txtColor);
+	drawIcon(dst, xmax - 2 * TITLE_HEIGHT-1, ymin-1, 1, iconColor);
+	drawIcon(dst, xmax - TITLE_HEIGHT-1, ymin-1, 0, iconColor);
 }
 
 void drawWindow(kernel_window *win)
@@ -487,8 +492,10 @@ void drawWindow(kernel_window *win)
 	int width = win->position.xmax - win->position.xmin;
 	int height = win->position.ymax - win->position.ymin;
 
+	
 	draw24ImagePart(screen_buf1, win->window_buf, win->position.xmin, win->position.ymin,
 					width, height, 0, 0, width, height);
+	//drawRectByCoord(screen_buf1, win->position.xmin, win->position.ymin, win->position.xmax, win->position.ymax, iconColor);
 
 	if (win->hasTitleBar)
 	{
@@ -514,7 +521,7 @@ void drawDesktopDock(struct RGB *dst)
 	if (windowCount > 0)
 	{
 		int xStart = START_ICON_WIDTH + 5;
-		int barWidth = (SCREEN_WIDTH - START_ICON_WIDTH - SHOW_DESKTOP_ICON_WIDTH) / (windowCount + 1);
+		int barWidth = min((SCREEN_WIDTH - START_ICON_WIDTH - SHOW_DESKTOP_ICON_WIDTH) / (windowCount + 1), DOCK_PROGRAM_NORMAL_WIDTH);
 		for (p = windowlisthead; p != -1; p = windowlist[p].next)
 		{
 			if (p != desktopId)
@@ -526,6 +533,7 @@ void drawDesktopDock(struct RGB *dst)
 		}
 	}
 	drawRectByCoord(dst, SCREEN_WIDTH - SHOW_DESKTOP_ICON_WIDTH, SCREEN_HEIGHT - DOCK_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, titleBarColor);
+	drawIcon(dst, START_ICON_WIDTH/2-15, SCREEN_HEIGHT - DOCK_HEIGHT+3, 2, iconColor);
 }
 
 void updateScreen()

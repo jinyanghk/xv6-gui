@@ -1,6 +1,16 @@
 {
     "files.associations": {
         "cstdlib": "c",
-        "random": "cpp"
+        "random": "cpp",
+        "system_error": "cpp",
+        "sstream": "c",
+        "*.tcc": "cpp",
+        "exception": "cpp",
+        "memory_resource": "cpp",
+        "fstream": "cpp",
+        "iosfwd": "cpp",
+        "new": "cpp",
+        "ostream": "cpp",
+        "streambuf": "cpp"
     }
 }

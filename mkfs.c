@@ -90,7 +90,7 @@ main(int argc, char *argv[])
     exit(1);
   }
 
-  // 1 fs block = 1 disk sector
+  // 1 fs bloFSSIZEck = 1 disk sector
   nmeta = 2 + nlog + ninodeblocks + nbitmap;
   nblocks = FSSIZE - nmeta;
 
@@ -267,7 +267,7 @@ iappend(uint inum, void *xp, int n)
   // printf("append inum %d at off %d sz %d\n", inum, off, n);
   while(n > 0){
     fbn = off / BSIZE;
-    assert(fbn < MAXFILE);
+    //assert(fbn < MAXFILE);
     if(fbn < NDIRECT){
       if(xint(din.addrs[fbn]) == 0){
         din.addrs[fbn] = xint(freeblock++);

@@ -15,32 +15,33 @@ struct RGBA;
 struct message;
 
 //window_manager.c
-void            wmInit(void);
-void            wmHandleMessage(struct message*);
+void wmInit(void);
+void wmHandleMessage(struct message *);
 
 //msg.c
-int             handleMessage(struct message*);
+int handleMessage(struct message *);
 
 //gui.c
 extern int screen_size;
-extern ushort  SCREEN_WIDTH;
-extern ushort  SCREEN_HEIGHT;
-extern struct RGB* screen;
-extern struct RGB* screen_buf1;
-void            initGUI(void);
-int             drawCharacter(struct RGB*, int, int, char, struct RGBA);
-void            drawString(struct RGB*, int, int, char *, struct RGBA);
-void            drawStringWithMaxWidth(struct RGB*, int, int, int, char *, struct RGBA);
-void            drawMouse(struct RGB*, int, int, int);
-void            clearMouse(struct RGB*, struct RGB*,int, int);
-void            drawRect(struct RGB*, int, int, int, int, struct RGBA);
-void            clearRect(struct RGB*, struct RGB*, int, int, int, int);
-void            drawRectByCoord(struct RGB*, int, int, int, int, struct RGBA);
-void            clearRectByCoord(struct RGB*, struct RGB*, int, int, int, int);
-void            draw24Image(struct RGB*, struct RGB*, int, int, int, int, int, int);
-void            draw24ImagePart(struct RGB*, struct RGB*, int, int, int, int, int, int, int, int);
-void            drawImage(struct RGB*, struct RGBA*, int, int, int, int, int, int);
-void            drawRectBound(struct RGB*, int, int, int, int, struct RGBA, int, int);
+extern ushort SCREEN_WIDTH;
+extern ushort SCREEN_HEIGHT;
+extern struct RGB *screen;
+extern struct RGB *screen_buf1;
+void initGUI(void);
+int drawCharacter(struct RGB *, int, int, char, struct RGBA);
+int drawIcon(struct RGB *buf, int x, int y, int icon, struct RGBA color);
+void drawString(struct RGB *, int, int, char *, struct RGBA);
+void drawStringWithMaxWidth(struct RGB *, int, int, int, char *, struct RGBA);
+void drawMouse(struct RGB *, int, int, int);
+void clearMouse(struct RGB *, struct RGB *, int, int);
+void drawRect(struct RGB *, int, int, int, int, struct RGBA);
+void clearRect(struct RGB *, struct RGB *, int, int, int, int);
+void drawRectByCoord(struct RGB *, int, int, int, int, struct RGBA);
+void clearRectByCoord(struct RGB *, struct RGB *, int, int, int, int);
+void draw24Image(struct RGB *, struct RGB *, int, int, int, int, int, int);
+void draw24ImagePart(struct RGB *, struct RGB *, int, int, int, int, int, int, int, int);
+void drawImage(struct RGB *, struct RGBA *, int, int, int, int, int, int);
+void drawRectBound(struct RGB *, int, int, int, int, struct RGBA, int, int);
 
 // bio.c
 void binit(void);
@@ -105,8 +106,8 @@ void kinit2(void *, void *);
 void kbdintr(void);
 
 // mouse.c
-void            mouseinit(void);
-void            mouseintr(uint);
+void mouseinit(void);
+void mouseintr(uint);
 
 // lapic.c
 void cmostime(struct rtcdate *r);
@@ -221,8 +222,6 @@ void switchuvm(struct proc *);
 void switchkvm(void);
 int copyout(pde_t *, uint, void *, uint);
 void clearpteu(pde_t *pgdir, char *uva);
-
-
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x) / sizeof((x)[0]))

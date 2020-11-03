@@ -4,187 +4,20 @@
 #include "msg.h"
 #include "user.h"
 #include "fcntl.h"
-#include "user_gui.h"
+#include "user_window.h"
 #include "character.h"
+#include "icons.h"
 #include "fs.h"
 #include "gui.h"
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 600
+int min(int x, int y) { return x < y ? x : y; }
+int max(int x, int y) { return x > y ? x : y; }
 
-void drawButtonWidget(window *win, Widget *w);
-
-int isInRect(int xmin, int ymin, int xmax, int ymax, int x, int y)
+void drawPoint(RGB *color, RGB origin)
 {
-    return (x >= xmin && x <= xmax && y >= ymin && y <= ymax);
-}
-
-void createPopupWindow(window *win, int caller)
-{
-
-    int width = win->width;
-    int height = win->height;
-
-    win->window_buf = malloc(width * height * 3);
-    if (!win->window_buf)
-    {
-        return;
-    }
-    memset(win->window_buf, 255, height * width * 3);
-    win->widgetlisthead = -1;
-    win->widgetlisttail = -1;
-    int i;
-    for (i = 0; i < MAX_WIDGET_SIZE; ++i)
-    {
-        win->widgets[i].next = i;
-        win->widgets[i].prev = i;
-    }
-    win->needsRepaint = 1;
-    win->hasTitleBar = 0;
-    //initlock(&win->wmlock, "wmlock");
-    GUI_createPopupWindow(win, caller);
-}
-
-void closePopupWindow(window *win)
-{
-    free(win->window_buf);
-    GUI_closePopupWindow(win);
-    exit();
-}
-
-void createWindow(window *win, const char *title)
-{
-
-    int width = win->width;
-    int height = win->height;
-
-    win->window_buf = malloc(width * height * 3);
-    if (!win->window_buf)
-    {
-        return;
-    }
-    memset(win->window_buf, 255, height * width * 3);
-    win->widgetlisthead = -1;
-    win->widgetlisttail = -1;
-    int i;
-    for (i = 0; i < MAX_WIDGET_SIZE; ++i)
-    {
-        win->widgets[i].next = i;
-        win->widgets[i].prev = i;
-    }
-    win->needsRepaint = 1;
-    if (win->hasTitleBar != 0)
-    {
-        win->hasTitleBar = 1;
-    }
-    //initlock(&win->wmlock, "wmlock");
-    GUI_createWindow(win, title);
-}
-
-void closeWindow(window *win)
-{
-    free(win->window_buf);
-    GUI_closeWindow(win);
-    exit();
-}
-
-void updateWindow(window *win)
-{
-
-    if (win->needsRepaint)
-    {
-        for (int p = win->widgetlisthead; p != -1; p = win->widgets[p].next)
-        {
-            drawButtonWidget(win, &win->widgets[p]);
-        }
-    }
-
-    message msg;
-    if (GUI_getMessage(win->handler, &msg) == 0)
-    {
-        win->needsRepaint = 1;
-        //TODO: check widgets to determine
-        if (msg.msg_type != 0)
-        {
-            printf(1, "message is %d\n", msg.msg_type);
-            printf(1, "mouse at %d, %d\n", msg.params[0], msg.params[1]);
-        }
-        if (msg.msg_type == WM_WINDOW_CLOSE)
-        {
-            closeWindow(win);
-        }
-        else if (msg.msg_type == WM_WINDOW_MINIMIZE)
-        {
-            GUI_minimizeWindow(win);
-        }
-        else if (msg.msg_type == WM_WINDOW_MAXIMIZE)
-        {
-            GUI_maximizeWindow(win);
-        }
-        else
-        {
-            int mouse_x = msg.params[0];
-            int mouse_y = msg.params[1];
-
-            for (int p = win->widgetlisttail; p != -1; p = win->widgets[p].prev)
-            {
-                if (isInRect(win->widgets[p].position.xmin, win->widgets[p].position.ymin, win->widgets[p].position.xmax, win->widgets[p].position.ymax, mouse_x, mouse_y))
-                {
-                    win->widgets[p].handler(&msg);
-                    break;
-                }
-            }
-        }
-    }
-    else
-    {
-        win->needsRepaint = 0;
-    }
-    return;
-}
-
-void updatePopupWindow(window *win)
-{
-    if (win->needsRepaint)
-    {
-        for (int p = win->widgetlisthead; p != -1; p = win->widgets[p].next)
-        {
-            drawButtonWidget(win, &win->widgets[p]);
-        }
-    }
-
-    message msg;
-    if (GUI_getPopupMessage(&msg) == 0)
-    {
-        win->needsRepaint = 1;
-        if (msg.msg_type != 0)
-        {
-            printf(1, "message is %d\n", msg.msg_type);
-            printf(1, "mouse at %d, %d\n", msg.params[0], msg.params[1]);
-        }
-        if (msg.msg_type == WM_WINDOW_CLOSE)
-        {
-            closePopupWindow(win);
-        }
-        else
-        {
-            int mouse_x = msg.params[0];
-            int mouse_y = msg.params[1];
-            for (int p = win->widgetlisttail; p != -1; p = win->widgets[p].prev)
-            {
-                if (isInRect(win->widgets[p].position.xmin, win->widgets[p].position.ymin, win->widgets[p].position.xmax, win->widgets[p].position.ymax, mouse_x, mouse_y))
-                {
-                    win->widgets[p].handler(&msg);
-                    break;
-                }
-            }
-        }
-    }
-    else
-    {
-        win->needsRepaint = 0;
-    }
-    return;
+    color->R = origin.R;
+    color->G = origin.G;
+    color->B = origin.B;
 }
 
 void drawPointAlpha(RGB *color, RGBA origin)
@@ -205,6 +38,28 @@ void drawPointAlpha(RGB *color, RGBA origin)
     color->R = color->R * (1 - alpha) + origin.R * alpha;
     color->G = color->G * (1 - alpha) + origin.G * alpha;
     color->B = color->B * (1 - alpha) + origin.B * alpha;
+}
+
+void fillRect(RGB *buf, int x, int y, int width, int height, int max_x, int max_y, RGBA fill)
+{
+    int i, j;
+    RGB *t;
+    for (i = 0; i < height; i++)
+    {
+        if (y + i < 0)
+            continue;
+        if (y + i >= max_y)
+            break;
+        for (j = 0; j < width; j++)
+        {
+            if (x + j < 0)
+                continue;
+            if (x + j >= max_x)
+                break;
+            t = buf + (y + i) * max_x + x + j;
+            drawPointAlpha(t, fill);
+        }
+    }
 }
 
 int drawCharacter(window *win, int x, int y, char ch, RGBA color)
@@ -246,17 +101,37 @@ int drawCharacter(window *win, int x, int y, char ch, RGBA color)
     return CHARACTER_WIDTH;
 }
 
-void drawString(window *win, int x, int y, char *str, RGBA color, int width)
+void drawString(window *win, char *str, RGBA color, int x, int y, int width, int height)
 {
     int offset_x = 0;
+    int offset_y = 0;
+    //int charPerLine = width / CHARACTER_WIDTH;
+    //y = y - win->scrollOffset;
 
     while (*str != '\0')
     {
-        if (x + offset_x >= win->width || offset_x >= width)
-        { // if too long
+        if (offset_y > height)
             break;
+        if (*str != '\n')
+        {
+            if (x + offset_x >= 0 && x + offset_x <= win->width && y + offset_y >= 0 && y + offset_y <= win->height)
+            {
+                drawCharacter(win, x + offset_x, y + offset_y, *str, color);
+            }
+
+            offset_x += CHARACTER_WIDTH;
+            if (offset_x > width)
+            {
+                offset_x = 0;
+                offset_y += CHARACTER_HEIGHT;
+            }
         }
-        offset_x += drawCharacter(win, x + offset_x, y, *str, color);
+        else
+        {
+            offset_x = 0;
+            offset_y += CHARACTER_HEIGHT;
+        }
+
         str++;
     }
 }
@@ -266,6 +141,7 @@ void drawImage(window *win, RGBA *img, int x, int y, int width, int height)
     int i, j;
     RGB *t;
     RGBA *o;
+    //y = y - win->scrollOffset;
     for (i = 0; i < height; i++)
     {
         if (y + i >= win->height)
@@ -295,6 +171,7 @@ void drawImage(window *win, RGBA *img, int x, int y, int width, int height)
 
 void draw24Image(window *win, RGB *img, int x, int y, int width, int height)
 {
+    //y = y - win->scrollOffset;
     int i;
     RGB *t;
     RGB *o;
@@ -317,6 +194,7 @@ void draw24Image(window *win, RGB *img, int x, int y, int width, int height)
 
 void drawRect(window *win, RGB color, int x, int y, int width, int height)
 {
+    //y = y - win->scrollOffset;
     if (x >= win->width || x + width < 0 || y >= win->height || y + height < 0 || x < 0 || y < 0 || width < 0 || height < 0)
     {
         return;
@@ -350,6 +228,7 @@ void drawRect(window *win, RGB color, int x, int y, int width, int height)
 
 void drawFillRect(window *win, RGBA color, int x, int y, int width, int height)
 {
+   // y = y - win->scrollOffset;
     if (x >= win->width || x + width < 0 || y >= win->height || y + height < 0 || x < 0 || y < 0 || width < 0 || height < 0)
     {
         return;
@@ -384,6 +263,7 @@ void drawFillRect(window *win, RGBA color, int x, int y, int width, int height)
 
 void draw24FillRect(window *win, RGB color, int x, int y, int width, int height)
 {
+    //y = y - win->scrollOffset;
     if (x >= win->width || x + width < 0 || y >= win->height || y + height < 0 || x < 0 || y < 0 || width < 0 || height < 0)
     {
         return;
@@ -417,83 +297,41 @@ void draw24FillRect(window *win, RGB color, int x, int y, int width, int height)
     }
 }
 
-void setWidgetSize(Widget *widget, int x, int y, int w, int h)
+void drawIcon(window *win, int icon, RGBA color, int x, int y, int width, int height)
 {
-    widget->position.xmin = x;
-    widget->position.ymin = y;
-    widget->position.xmax = x + w;
-    widget->position.ymax = y + h;
-}
-
-int findNextAvailable(window *win)
-{
-
-    for (int i = 0; i < MAX_WIDGET_SIZE; i++)
+    //y = y - win->scrollOffset;
+    int i, j;
+    RGB *t;
+    if (icon < 0 || icon >= (ICON_NUMBER - 1))
     {
-        if (win->widgets[i].prev == i && win->widgets[i].next == i)
+        return;
+    }
+    for (i = 0; i < min(ICON_SIZE, width); i++)
+    {
+        if (y + i > win->height)
         {
-            return i;
+            break;
+        }
+        if (y + i < 0)
+        {
+            continue;
+        }
+        for (j = 0; j < min(ICON_SIZE, width); j++)
+        {
+            if (icons[icon][i][j] == 1)
+            {
+                if (x + j > win->width)
+                {
+                    break;
+                }
+                if (x + j < 0)
+                {
+                    continue;
+                }
+                t = win->window_buf + (y + i) * win->width + x + j;
+                drawPointAlpha(t, color);
+            }
         }
     }
-    return -1;
-}
-
-void addToWidgetListTail(window *win, int idx)
-{
-    win->widgets[idx].prev = win->widgetlisttail;
-    win->widgets[idx].next = -1;
-    if (win->widgetlisttail != -1)
-        win->widgets[win->widgetlisttail].next = idx;
-    win->widgetlisttail = idx;
-}
-
-void removeFromWidgetList(window *win, int idx)
-{
-    if (win->widgetlisttail == idx)
-        win->widgetlisttail = win->widgets[win->widgetlisttail].prev;
-    if (win->widgets[idx].prev != -1)
-        win->widgets[win->widgets[idx].prev].next = win->widgets[idx].next;
-    if (win->widgets[idx].next != -1)
-        win->widgets[win->widgets[idx].next].prev = win->widgets[idx].prev;
-}
-
-int addButtonWidget(window *win, RGBA c, RGBA bc, char *text, int x, int y, int w, int h, Handler handler)
-{
-
-    int widgetId = findNextAvailable(win);
-    if (widgetId == -1)
-        return 1;
-
-    if (win->widgetlisthead == -1)
-    {
-        win->widgetlisthead = widgetId;
-    }
-
-    addToWidgetListTail(win, widgetId);
-
-    Button *b = malloc(sizeof(Button));
-    b->bg_color = bc;
-    b->color = c;
-    strcpy(b->text, text);
-
-    Widget *widget = &win->widgets[widgetId];
-    widget->context.button = b;
-    widget->type = BUTTON;
-    widget->handler = handler;
-    setWidgetSize(widget, x, y, w, h);
-
-    return 0;
-}
-
-void drawButtonWidget(window *win, Widget *w)
-{
-    RGB black;
-    black.R = 0;
-    black.G = 0;
-    black.B = 0;
-    int width = w->position.xmax - w->position.xmin;
-    int height = w->position.ymax - w->position.ymin;
-    drawFillRect(win, w->context.button->bg_color, w->position.xmin, w->position.ymin, width, height);
-    drawRect(win, black, w->position.xmin, w->position.ymin, width, height);
-    drawString(win, w->position.xmin, w->position.ymin, w->context.button->text, w->context.button->color, width);
+    return;
 }
