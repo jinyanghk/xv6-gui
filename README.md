@@ -21,7 +21,8 @@ simulator and run "make qemu".
 
 ## GUI ARCHITECTURE
 
-Kernel level side:
+### Kernel level side:
+
 There is the struct kernel window which remembers its position (bounded rectangle with xmin, xmax, ymin, ymax), whether the window has a title bar or is minimized or not. It also keeps the pointer to the video array of the window (a 800\*600 array of RGB values).
 
 The kernel part of the GUI code maintains a doubly linked list of kernel windows (called windowlist). Those windows are the ordinary windows we see in a GUI OS. They have a title bar that can be used to dragged the window around, or click on the minimize/close icon to minimize or close this window. They overlap with each other and the top most one is the focused on that interacts with the user. There is also a global single kernel window called the popup window. This window does not have a title bar (so it can not be dragged). It will be dismissed by clicking anywhere outside of it. It is also painted on top of every window in the windowlist. This popup window can be used to implement the start window and the right click popup message window on desktop that we see in Windows operating system. It keeps a handle to the window that creates it, which allows it to access the functions and data of its creator. 
@@ -30,7 +31,8 @@ The kernel is in charge of handling and dispatching the message from the keyboar
 
 The only function in the kernel that updates(redraws) the screen is the updateScreen() function which will only be called by the desktop program. This function first clears the screen buffer, draw the desktop window, draw the dock, draw other windows in order, draw the systemwide popup window, then draws the mouse. Then it flushes the screen buffer to the screen (the real video memory). This may cause extra computational cost, but greatly simplifies the coding. 
 
-User level side:
+### User level side:
+
 There is a struct called window that every GUI user program maintains. This window communicates with its corresponding kernel window about settings and messages. The window class has no idea where it is on the screen or whether it is minimized or not. Those information are only kept in the kernel. 
 
 The window also maintains a doubly linked list of widgets which are all that matters when drawing the window. Widget is a different struct which consists of a widget type, its position relative to the window, and a handler that responds to messages. Currently defined widget types are colorFill (a rectangle that is filled with one color), text(plain text with a certain color), button(a solid color rectangle with some text inside) and inputField (has a cursor that indicates the current offset to the text inside). 
