@@ -41,19 +41,24 @@ The GUI user program would add the widgets, write message handlers for these wid
 
 There some predefined handlers such as the empty handler (does nothing), inputKeyHandler(responds to ascii values includes '\n', arrows keys that modifies the text cursor), inputMouse Handler(responds to mouse click that modifies the text cursor), execHandler(start another process). One can combine these handlers easily or create new ones. 
 
-There is also the situation that the total height of the widgets maybe too long (e.g. for a GUI shell). To deal with such situation, I add another attribute called scrollOffset to the window. The widgets can choose whether they are scrollable or not. The scrollable widgets are then painted with the scrollOffset subtracted. The mouse y position is added by this scrollOffset when passing a message to these widgets. In this way we can create the illusion that the window is actually scrolling in the y direction. The x direction scrolling can also be added easily. This scrolling is currently used in the shell.c program to accomondate long shell command history. 
+There are also situations when the total height of the widgets is too long (e.g. for a GUI shell). To deal with such situations, I add another attribute called scrollOffsetY to the window. The widgets can choose whether they are scrollable or not. The scrollable widgets are then painted with the scrollOffsetY subtracted in the y direction. The mouse y position is added by this scrollOffsetY when passing a message to these widgets. In this way we can create the illusion that the window is actually scrolling in the y direction. The x direction scrolling is also added. This y scrolling is currently used in the shell.c and editor.c program to accomondate long text 
 
 Currently implemented GUI programs are desktop.c, demo.c, shell.c, editor.c, explorer.c. 
 
 ![Image of GUI arch](/xv6_gui_architecture.png)
 
+## CURRENT ISSUES
+This project is still a work in progress. I couldn't devote more time to it being occupied by my research and other courses. Bugs are to be expected. Here are some of the issues I have found so far:
+- In the shell program, the last response from the shell won't show up until you issue a new command. This because I send a command and reveive a command both when type '\n' in the shell. I haven't figured out how to solve this issue.
+- When you click the mkdir button in the file explorer to create a temp directory under the root directory, some other directories with random names are also being created. I have no idea how this happens... 
+- Sometimes the program just froze with trap number 13. 
+
 ## FUTURE PLAN
 
-This project is still a work in progress. I couldn't devote more time to it being occupied by my research and other courses. Bugs are to be expected. And the current implementation for the widget system is not optimal. 
-
 Here are some ideas I think can be explored in the future:
-- Add system wide text selection, copy and paste.
 - Redo the widget class. Organize widgets into a tree structure. Add layout widget class (row, column, grid,etc). Add messaging between widgets. Add more constraint options (percentage instead of actual pixels). Basically working towards a mini Flutter.
+- Pass draging gestures to widgets as well. Currently dragging only works for moving windows on the screen. 
+- Add system wide text selection, copy and paste (through the popup window functionality).
 - Add more user programs like image viewer, some simple games (maybe using x or y scrolling). 
 
 
