@@ -19,6 +19,8 @@ void drawButtonWidget(window *win, Widget *w);
 void drawTextWidget(window *win, Widget *w);
 void drawInputFieldWidget(window *win, Widget *w);
 
+int freeWidget(window *win, int index);
+
 void debugPrintWidgetList(window *win)
 {
 
@@ -76,6 +78,10 @@ void createPopupWindow(window *win, int caller)
 void closePopupWindow(window *win)
 {
     free(win->window_buf);
+    for (int p = win->widgetlisthead; p != -1; p = win->widgets[p].next)
+    {
+        freeWidget(win, p);
+    }
     GUI_closePopupWindow(win);
     exit();
 }
@@ -108,13 +114,17 @@ void createWindow(window *win, const char *title)
     {
         win->hasTitleBar = 1;
     }
-    
+
     GUI_createWindow(win, title);
 }
 
 void closeWindow(window *win)
 {
     free(win->window_buf);
+    for (int p = win->widgetlisthead; p != -1; p = win->widgets[p].next)
+    {
+        freeWidget(win, p);
+    }
     GUI_closeWindow(win);
     exit();
 }
@@ -128,7 +138,6 @@ void updateWindow(window *win)
         for (int p = win->widgetlisthead; p != -1; p = win->widgets[p].next)
         {
             //don't draw widget that is invisible
-            
             if ((!win->widgets[p].scrollable && (win->widgets[p].position.xmin > win->width ||
                                                  win->widgets[p].position.xmax < 0 ||
                                                  win->widgets[p].position.ymin > win->height ||
@@ -166,6 +175,7 @@ void updateWindow(window *win)
     if (GUI_getMessage(win->handler, &msg) == 0)
     {
         win->needsRepaint = 1;
+
         if (msg.msg_type == WM_WINDOW_CLOSE)
         {
             closeWindow(win);
@@ -203,13 +213,14 @@ void updateWindow(window *win)
                         {
                             message newmsg;
                             newmsg.msg_type = msg.msg_type;
-                            newmsg.params[0] = msg.params[0] + win->scrollOffsetX;
-                            newmsg.params[1] = msg.params[1] + win->scrollOffsetY;
+                            newmsg.params[0] = mouse_x + win->scrollOffsetX;
+                            newmsg.params[1] = mouse_y + win->scrollOffsetY;
                             win->widgets[p].handler(&win->widgets[p], &newmsg);
                         }
 
-                        if(win->widgets[p].type==INPUTFIELD) {
-                            win->keyfocus=p;
+                        if (win->widgets[p].type == INPUTFIELD)
+                        {
+                            win->keyfocus = p;
                         }
 
                         break;
@@ -239,11 +250,8 @@ void updatePopupWindow(window *win)
     if (GUI_getPopupMessage(&msg) == 0)
     {
         win->needsRepaint = 1;
-        if (msg.msg_type != 0)
-        {
-            printf(1, "message is %d\n", msg.msg_type);
-            printf(1, "mouse at %d, %d\n", msg.params[0], msg.params[1]);
-        }
+        printf(1, "popup has message\n");
+
         if (msg.msg_type == WM_WINDOW_CLOSE)
         {
             closePopupWindow(win);
@@ -263,6 +271,11 @@ void updatePopupWindow(window *win)
                     if (isInRect(win->widgets[p].position.xmin, win->widgets[p].position.ymin, win->widgets[p].position.xmax, win->widgets[p].position.ymax, mouse_x, mouse_y))
                     {
                         win->widgets[p].handler(&win->widgets[p], &msg);
+
+                        if (win->widgets[p].type == INPUTFIELD)
+                        {
+                            win->keyfocus = p;
+                        }
                         break;
                     }
                 }
@@ -348,12 +361,8 @@ int addWidget(window *win)
     return widgetId;
 }
 
-int removeWidget(window *win, int index)
+int freeWidget(window *win, int index)
 {
-    if (win->widgets[index].prev == index && win->widgets[index].next == index)
-    {
-        return -1;
-    }
     switch (win->widgets[index].type)
     {
     case COLORFILL:
@@ -372,6 +381,16 @@ int removeWidget(window *win, int index)
     default:
         break;
     }
+    return 0;
+}
+
+int removeWidget(window *win, int index)
+{
+    if (win->widgets[index].prev == index && win->widgets[index].next == index)
+    {
+        return -1;
+    }
+    freeWidget(win, index);
     removeFromWidgetList(win, index);
     return 0;
 }
@@ -500,7 +519,7 @@ void drawButtonWidget(window *win, Widget *w)
     {
         drawFillRect(win, w->context.button->bg_color, w->position.xmin - win->scrollOffsetX, w->position.ymin - win->scrollOffsetY, width, height);
         drawRect(win, black, w->position.xmin - win->scrollOffsetX, w->position.ymin - win->scrollOffsetY, width, height);
-        drawString(win, w->context.button->text, w->context.button->color, w->position.xmin + 4 - win->scrollOffsetX, w->position.ymin + 2 - win->scrollOffsetY, width, height);
+        drawString(win, w->context.button->text, w->context.button->color, w->position.xmin + textXOffset - win->scrollOffsetX, w->position.ymin + textYOffset - win->scrollOffsetY, width, height);
     }
     else
     {

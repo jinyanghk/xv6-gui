@@ -173,20 +173,12 @@ int main(int argc, char *argv[])
   wfd = (int)argv[2][0];
   close(0);
   dup(rfd);
-  //close(rfd);
+
   close(2);
   dup(wfd);
 
-  //printf(1, "sh read from %d, write to %d\n", rfd, wfd);
-
-  /*
-  while(read(rfd, buf, sizeof(buf)) && strlen(buf)>0) {
-    printf(1, "sh get command is %s\n", buf);
-  }
-  */
 
   // Read and run input commands.
-
   while (getcmd(rfd, buf, sizeof(buf)) >= 0)
   {
     //printf(1, "sh get command is %s\n", buf);
@@ -204,7 +196,6 @@ int main(int argc, char *argv[])
       dup(wfd);
       runcmd(parsecmd(buf));
     }
-    //printf(2, "$ ");
     wait();
     dup(wfd);
   }

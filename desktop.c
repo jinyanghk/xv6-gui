@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     textColor.A = 255;
 
     for(int i=0; i<4; i++) {
-       addButtonWidget(&desktop, textColor, buttonColor, GUI_programs[i], 40, 20 + 50*i, 80, 30, 0, startProgramHandler); 
+       addButtonWidget(&desktop, textColor, buttonColor, GUI_programs[i], 40, 20 + 50*i, 80, 30, 1, startProgramHandler); 
     }
 
     addButtonWidget(&desktop, textColor, buttonColor, "start", 5, SCREEN_HEIGHT - 30, 60, 25, 0, startWindowHandler);
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     {
         updateWindow(&desktop);
         int currentTime = uptime();
-        if (currentTime - lastTime >= 1)
+        if (currentTime - lastTime >= 2)
         {
             GUI_updateScreen();
             lastTime = currentTime;
