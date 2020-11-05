@@ -88,4 +88,8 @@ void emptyHandler(struct Widget *w, struct message *msg);
 int getInputOffsetFromMousePosition(char* str, int width, int mouse_x, int mouse_y);
 int getMouseXFromOffset(char* str, int width, int offset);
 int getMouseYFromOffset(char* str, int width, int offset);
+void inputMouseLeftClickHandler(struct Widget *w, struct message *msg);
 void inputFieldKeyHandler(struct Widget *w, struct  message *msg);
+
+int getScrollableTotalHeight(struct window *win);
+int addScrollBarWidget(struct window* window, struct RGBA color, Handler handler);

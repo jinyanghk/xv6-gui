@@ -105,8 +105,6 @@ void drawString(window *win, char *str, RGBA color, int x, int y, int width, int
 {
     int offset_x = 0;
     int offset_y = 0;
-    //int charPerLine = width / CHARACTER_WIDTH;
-    //y = y - win->scrollOffset;
 
     while (*str != '\0')
     {
@@ -141,7 +139,7 @@ void drawImage(window *win, RGBA *img, int x, int y, int width, int height)
     int i, j;
     RGB *t;
     RGBA *o;
-    //y = y - win->scrollOffset;
+
     for (i = 0; i < height; i++)
     {
         if (y + i >= win->height)
@@ -171,7 +169,7 @@ void drawImage(window *win, RGBA *img, int x, int y, int width, int height)
 
 void draw24Image(window *win, RGB *img, int x, int y, int width, int height)
 {
-    //y = y - win->scrollOffset;
+
     int i;
     RGB *t;
     RGB *o;
@@ -194,7 +192,7 @@ void draw24Image(window *win, RGB *img, int x, int y, int width, int height)
 
 void drawRect(window *win, RGB color, int x, int y, int width, int height)
 {
-    //y = y - win->scrollOffset;
+
     if (x >= win->width || x + width < 0 || y >= win->height || y + height < 0 || x < 0 || y < 0 || width < 0 || height < 0)
     {
         return;
@@ -216,19 +214,21 @@ void drawRect(window *win, RGB color, int x, int y, int width, int height)
     {
         *(t + i * win->width) = color;
     }
+    
     if (x + width < win->width)
     {
-        t = win->window_buf + y * win->width + x + win->width;
+        t = win->window_buf + y * win->width + x + width;
         for (i = 0; i < max_height; i++)
         {
             *(t + i * win->width) = color;
         }
     }
+    
 }
 
 void drawFillRect(window *win, RGBA color, int x, int y, int width, int height)
 {
-   // y = y - win->scrollOffset;
+
     if (x >= win->width || x + width < 0 || y >= win->height || y + height < 0 || x < 0 || y < 0 || width < 0 || height < 0)
     {
         return;
@@ -263,7 +263,7 @@ void drawFillRect(window *win, RGBA color, int x, int y, int width, int height)
 
 void draw24FillRect(window *win, RGB color, int x, int y, int width, int height)
 {
-    //y = y - win->scrollOffset;
+
     if (x >= win->width || x + width < 0 || y >= win->height || y + height < 0 || x < 0 || y < 0 || width < 0 || height < 0)
     {
         return;
@@ -299,7 +299,7 @@ void draw24FillRect(window *win, RGB color, int x, int y, int width, int height)
 
 void drawIcon(window *win, int icon, RGBA color, int x, int y, int width, int height)
 {
-    //y = y - win->scrollOffset;
+
     int i, j;
     RGB *t;
     if (icon < 0 || icon >= (ICON_NUMBER - 1))

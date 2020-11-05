@@ -11,14 +11,16 @@
 
 window startWindow;
 
-void buttonHandler(Widget* widget, message *msg)
+char *GUI_programs[] = {"shell", "editor", "explorer", "demo"};
+
+void startProgramHandler(Widget *widget, message *msg)
 {
     if (msg->msg_type == M_MOUSE_DBCLICK)
     {
         if (fork() == 0)
         {
             printf(1, "fork new process\n");
-            char *argv2[] = {"demo"};
+            char *argv2[] = {widget->context.button->text};
             exec(argv2[0], argv2);
             exit();
         }
@@ -40,18 +42,22 @@ int main(int argc, char *argv[])
     startWindow.hasTitleBar = 0;
     createPopupWindow(&startWindow, caller);
 
-    struct RGBA desktopColor;
-    desktopColor.R = 66;
-    desktopColor.G = 130;
-    desktopColor.B = 244;
-    desktopColor.A = 250;
-    struct RGBA color;
-    color.R = 219;
-    color.G = 68;
-    color.B = 55;
-    color.A = 255;
+    struct RGBA buttonColor;
+    struct RGBA textColor;
+    buttonColor.R = 244;
+    buttonColor.G = 180;
+    buttonColor.B = 0;
+    buttonColor.A = 255;
 
-    addButtonWidget(&startWindow, desktopColor, color, "button", 10, 150, 50, 25, 0, buttonHandler);
+    textColor.R = 0;
+    textColor.G = 0;
+    textColor.B = 0;
+    textColor.A = 255;
+
+    for (int i = 0; i < 4; i++)
+    {
+        addButtonWidget(&startWindow, textColor, buttonColor, GUI_programs[i], 20, 20 + 50 * i, 80, 30, 0, startProgramHandler);
+    }
 
     //int startTime=uptime();
     while (1)

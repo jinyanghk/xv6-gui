@@ -25,7 +25,7 @@ void debugPrintWidgetList(window *win)
     printf(1, "############################\n");
     printf(1, "current Head at %d\n", win->widgetlisthead);
     printf(1, "current Tail at %d\n", win->widgetlisttail);
-    printf(1, "current scrollOffset is %d\n", win->scrollOffset);
+    printf(1, "current scrollOffset is %d\n", win->scrollOffsetY);
     printf(1, "\n");
 
     int p;
@@ -67,7 +67,8 @@ void createPopupWindow(window *win, int caller)
     }
     win->needsRepaint = 1;
     win->hasTitleBar = 0;
-    win->scrollOffset = 0;
+    win->scrollOffsetX = 0;
+    win->scrollOffsetY = 0;
     //initlock(&win->wmlock, "wmlock");
     GUI_createPopupWindow(win, caller);
 }
@@ -94,7 +95,8 @@ void createWindow(window *win, const char *title)
     win->widgetlisthead = -1;
     win->widgetlisttail = -1;
     win->keyfocus = -1;
-    win->scrollOffset = 0;
+    win->scrollOffsetX = 0;
+    win->scrollOffsetY = 0;
     int i;
     for (i = 0; i < MAX_WIDGET_SIZE; ++i)
     {
@@ -106,7 +108,7 @@ void createWindow(window *win, const char *title)
     {
         win->hasTitleBar = 1;
     }
-    //initlock(&win->wmlock, "wmlock");
+    
     GUI_createWindow(win, title);
 }
 
@@ -127,16 +129,18 @@ void updateWindow(window *win)
         {
             //don't draw widget that is invisible
             
-            if (win->widgets[p].position.xmin > win->width ||
-                win->widgets[p].position.xmax < 0 ||
-                (!win->widgets[p].scrollable && win->widgets[p].position.ymin > win->height) ||
-                (!win->widgets[p].scrollable && win->widgets[p].position.ymax < 0) ||
-                (win->widgets[p].scrollable && win->widgets[p].position.ymin - win->scrollOffset > win->height) ||
-                (win->widgets[p].scrollable && win->widgets[p].position.ymax - win->scrollOffset < 0))
+            if ((!win->widgets[p].scrollable && (win->widgets[p].position.xmin > win->width ||
+                                                 win->widgets[p].position.xmax < 0 ||
+                                                 win->widgets[p].position.ymin > win->height ||
+                                                 win->widgets[p].position.ymax < 0)) ||
+                (win->widgets[p].scrollable && (win->widgets[p].position.xmin - win->scrollOffsetX > win->width ||
+                                                win->widgets[p].position.xmax - win->scrollOffsetX < 0 ||
+                                                win->widgets[p].position.ymin - win->scrollOffsetY > win->height ||
+                                                win->widgets[p].position.ymax - win->scrollOffsetY < 0)))
             {
                 continue;
             }
-            
+
             switch (win->widgets[p].type)
             {
             case COLORFILL:
@@ -162,11 +166,6 @@ void updateWindow(window *win)
     if (GUI_getMessage(win->handler, &msg) == 0)
     {
         win->needsRepaint = 1;
-        if (msg.msg_type != 0)
-        {
-            //printf(1, "message is %d\n", msg.msg_type);
-            //printf(1, "mouse at %d, %d\n", msg.params[0], msg.params[1]);
-        }
         if (msg.msg_type == WM_WINDOW_CLOSE)
         {
             closeWindow(win);
@@ -194,7 +193,7 @@ void updateWindow(window *win)
                 {
 
                     if ((!win->widgets[p].scrollable && isInRect(win->widgets[p].position.xmin, win->widgets[p].position.ymin, win->widgets[p].position.xmax, win->widgets[p].position.ymax, mouse_x, mouse_y)) ||
-                        (win->widgets[p].scrollable && isInRect(win->widgets[p].position.xmin, win->widgets[p].position.ymin - win->scrollOffset, win->widgets[p].position.xmax, win->widgets[p].position.ymax - win->scrollOffset, mouse_x, mouse_y)))
+                        (win->widgets[p].scrollable && isInRect(win->widgets[p].position.xmin - win->scrollOffsetX, win->widgets[p].position.ymin - win->scrollOffsetY, win->widgets[p].position.xmax - win->scrollOffsetX, win->widgets[p].position.ymax - win->scrollOffsetY, mouse_x, mouse_y)))
                     {
                         if (!win->widgets[p].scrollable)
                         {
@@ -204,9 +203,13 @@ void updateWindow(window *win)
                         {
                             message newmsg;
                             newmsg.msg_type = msg.msg_type;
-                            newmsg.params[0] = msg.params[0];
-                            newmsg.params[1] = msg.params[1] + win->scrollOffset;
+                            newmsg.params[0] = msg.params[0] + win->scrollOffsetX;
+                            newmsg.params[1] = msg.params[1] + win->scrollOffsetY;
                             win->widgets[p].handler(&win->widgets[p], &newmsg);
+                        }
+
+                        if(win->widgets[p].type==INPUTFIELD) {
+                            win->keyfocus=p;
                         }
 
                         break;
@@ -394,6 +397,7 @@ int addColorFillWidget(window *win, RGBA c, int x, int y, int w, int h, int scro
     widget->type = COLORFILL;
     widget->handler = handler;
     widget->scrollable = scrollable;
+    //widget->window=win;
     setWidgetSize(widget, x, y, w, h);
 
     return widgetId;
@@ -470,7 +474,7 @@ void drawColorFillWidget(window *win, Widget *w)
     //window_drawFillRect(win, w->context.colorfill->color, w->position.xmin, w->position.ymin, width, height);
     if (w->scrollable)
     {
-        draw24Image(win, w->context.colorfill->buf, w->position.xmin, w->position.ymin - win->scrollOffset, width, height);
+        draw24Image(win, w->context.colorfill->buf, w->position.xmin - win->scrollOffsetX, w->position.ymin - win->scrollOffsetY, width, height);
     }
     else
     {
@@ -486,15 +490,23 @@ void drawButtonWidget(window *win, Widget *w)
     black.B = 0;
     int width = w->position.xmax - w->position.xmin;
     int height = w->position.ymax - w->position.ymin;
+    int textYOffset = (height - CHARACTER_HEIGHT) / 2;
+    int textXOffset = 2;
+    if (width > strlen(w->context.button->text) * CHARACTER_WIDTH)
+    {
+        textXOffset = (width - strlen(w->context.button->text) * CHARACTER_WIDTH) / 2;
+    }
     if (w->scrollable)
     {
-        drawFillRect(win, w->context.button->bg_color, w->position.xmin, w->position.ymin - win->scrollOffset, width, height);
-        drawRect(win, black, w->position.xmin, w->position.ymin - win->scrollOffset, width, height);
+        drawFillRect(win, w->context.button->bg_color, w->position.xmin - win->scrollOffsetX, w->position.ymin - win->scrollOffsetY, width, height);
+        drawRect(win, black, w->position.xmin - win->scrollOffsetX, w->position.ymin - win->scrollOffsetY, width, height);
+        drawString(win, w->context.button->text, w->context.button->color, w->position.xmin + 4 - win->scrollOffsetX, w->position.ymin + 2 - win->scrollOffsetY, width, height);
     }
     else
     {
         drawFillRect(win, w->context.button->bg_color, w->position.xmin, w->position.ymin, width, height);
         drawRect(win, black, w->position.xmin, w->position.ymin, width, height);
+        drawString(win, w->context.button->text, w->context.button->color, w->position.xmin + textXOffset, w->position.ymin + textYOffset, width, height);
     }
     //drawString(win, w->position.xmin+4, w->position.ymin+2, w->context.button->text, w->context.button->color, width);
 }
@@ -505,7 +517,7 @@ void drawTextWidget(window *win, Widget *w)
     int height = w->position.ymax - w->position.ymin;
     if (w->scrollable)
     {
-        drawString(win, w->context.text->text, w->context.text->color, w->position.xmin, w->position.ymin - win->scrollOffset, width, height);
+        drawString(win, w->context.text->text, w->context.text->color, w->position.xmin - win->scrollOffsetX, w->position.ymin - win->scrollOffsetY, width, height);
     }
     else
     {
@@ -526,7 +538,7 @@ void drawInputFieldWidget(window *win, Widget *w)
     //int charPerLine = width / CHARACTER_WIDTH;
     if (w->scrollable)
     {
-        drawString(win, w->context.inputfield->text, w->context.inputfield->color, w->position.xmin, w->position.ymin - win->scrollOffset, width, height);
+        drawString(win, w->context.inputfield->text, w->context.inputfield->color, w->position.xmin - win->scrollOffsetX, w->position.ymin - win->scrollOffsetY, width, height);
     }
     else
     {
@@ -564,7 +576,7 @@ void drawInputFieldWidget(window *win, Widget *w)
     {
         if (w->scrollable)
         {
-            drawFillRect(win, black, w->position.xmin + offset_x, w->position.ymin + offset_y + 1 - win->scrollOffset, 1, CHARACTER_HEIGHT - 4);
+            drawFillRect(win, black, w->position.xmin + offset_x - win->scrollOffsetX, w->position.ymin + offset_y + 1 - win->scrollOffsetY, 1, CHARACTER_HEIGHT - 4);
         }
         else
         {

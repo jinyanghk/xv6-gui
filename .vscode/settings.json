@@ -12,6 +12,7 @@
         "new": "cpp",
         "ostream": "cpp",
         "streambuf": "cpp",
-        "memory": "c"
+        "memory": "c",
+        "atomic": "cpp"
     }
 }

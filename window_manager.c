@@ -307,20 +307,6 @@ void handleDesktopDockClick(int mouse_x, message *msg)
 			newmsg.params[1] = wm_mouse_pos.y;
 			dispatchMessage(&windowlist[desktopId].wnd.msg_buf, &newmsg);
 		}
-
-		/*
-		if (popupwindow.caller == -1)
-		{
-			message newmsg;
-			newmsg.msg_type = WM_POPUP_WINDOW_OPEN;
-			dispatchMessage(&windowlist[desktopId].wnd.msg_buf, &newmsg);
-		}
-		else{
-			message newmsg;
-			newmsg.msg_type = WM_POPUP_WINDOW_CLOSE;
-			dispatchMessage(&windowlist[desktopId].wnd.msg_buf, &newmsg);
-		}
-		*/
 	}
 }
 
@@ -566,7 +552,7 @@ void updateScreen()
 		switchkvm();
 	else
 		switchuvm(windowlist[desktopId].proc);
-	
+	 
 
 	drawMouse(screen_buf1, 0, wm_mouse_pos.x, wm_mouse_pos.y);
 	memmove(screen, screen_buf1, screen_size);

@@ -7,17 +7,17 @@
 #include "user_handler.h"
 #include "gui.h"
 #include "msg.h"
-//#include "defs.h"
 
-window desktop;
+//for talking to the shell
 int sh_pid, rfd, wfd;
 int gui2sh_fd[2], sh2gui_fd[2];
 char init_string[] = "$ ";
-int commandWidgetId;
-int totallines = 0;
-
 #define READBUFFERSIZE 1024
 char read_buf[READBUFFERSIZE];
+
+window programWindow;
+int commandWidgetId;
+int totallines = 0;
 struct RGBA commandColor;
 struct RGBA textColor;
 
@@ -42,11 +42,7 @@ void create_shell(int *p_pid, int *p_rfd, int *p_wfd)
         printf(1, "init sh->gui pipe: pipe() failed\n");
         exit();
     }
-    printf(1, "init pipe: pipe is ok\n");
-    printf(1, "pipe gui2sh, %d, %d\n", gui2sh_fd[0], gui2sh_fd[1]);
-    printf(1, "pipe sh2gui, %d, %d\n", sh2gui_fd[0], sh2gui_fd[1]);
 
-    printf(1, "init sh: starting sh\n");
     *p_pid = fork();
     if (*p_pid < 0)
     {
@@ -78,24 +74,37 @@ void create_shell(int *p_pid, int *p_rfd, int *p_wfd)
 
 int readCommand = -1;
 
+/*
+void scrollBarHandler(Widget *w, message *msg)
+{
+    if (msg->msg_type == M_MOUSE_LEFT_CLICK)
+    {
+        int mouse_y = msg->params[1];
+        int maximumOffset = getScrollableTotalHeight(&programWindow) - programWindow.height;
+        programWindow.scrollOffset = ((float)mouse_y / programWindow.height) * maximumOffset;
+
+        int scrollableHeight = 20;
+        int startHeight = ((float)mouse_y / programWindow.height) * (programWindow.height - scrollableHeight);
+
+        printf(1, "start %d, scrollbar height %d\n", startHeight, scrollableHeight);
+        if (scrollBallId != -1)
+        {
+            removeWidget(&programWindow, scrollBallId);
+        }
+        scrollBallId = addColorFillWidget(&programWindow, commandColor, programWindow.width - scrollableHeight, startHeight, scrollableHeight, scrollableHeight, 0, emptyHandler);
+    }
+}
+*/
+
 void inputHandler(Widget *w, message *msg)
 {
 
-    int mouse_x = msg->params[0];
-    int mouse_y = msg->params[1];
     int width = w->position.xmax - w->position.xmin;
     int height = w->position.ymax - w->position.ymin;
-    //int charPerLine = width / CHARACTER_WIDTH;
     int charCount = strlen(w->context.inputfield->text);
     if (msg->msg_type == M_MOUSE_LEFT_CLICK)
     {
-
-        int mouse_char_y = (mouse_y - w->position.ymin) / CHARACTER_HEIGHT;
-        int mouse_char_x = (mouse_x - w->position.xmin) / CHARACTER_WIDTH;
-        int new_pos = getInputOffsetFromMousePosition(w->context.inputfield->text, width, mouse_char_x, mouse_char_y);
-        if (new_pos > charCount)
-            new_pos = charCount;
-        w->context.inputfield->current_pos = new_pos;
+        inputMouseLeftClickHandler(w, msg);
     }
     else if (msg->msg_type == M_KEY_DOWN)
     {
@@ -112,7 +121,6 @@ void inputHandler(Widget *w, message *msg)
             }
             else
             {
-                
                 int n;
                 // Read the result until get the initial string "$ "
                 memset(read_buf, 0, READBUFFERSIZE);
@@ -128,25 +136,33 @@ void inputHandler(Widget *w, message *msg)
                 }
             }
 
-             int respondLineCount = getMouseYFromOffset(read_buf, width, strlen(read_buf));
-            readCommand = addTextWidget(&desktop, textColor, read_buf, 0, totallines * CHARACTER_HEIGHT, width, respondLineCount * CHARACTER_HEIGHT, 1, emptyHandler);
+            int respondLineCount = getMouseYFromOffset(read_buf, width, strlen(read_buf));
+            readCommand = addTextWidget(&programWindow, textColor, read_buf, 0, totallines * CHARACTER_HEIGHT, width, respondLineCount * CHARACTER_HEIGHT, 1, emptyHandler);
             totallines += respondLineCount;
 
             int commandLindCount = getMouseYFromOffset(buffer, width, strlen(buffer)) + 1;
-            removeWidget(&desktop, commandWidgetId);
-            addTextWidget(&desktop, commandColor, buffer, 0, totallines * CHARACTER_HEIGHT, width, commandLindCount * CHARACTER_HEIGHT, 1, emptyHandler);
+            removeWidget(&programWindow, commandWidgetId);
+            addTextWidget(&programWindow, commandColor, buffer, 0, totallines * CHARACTER_HEIGHT, width, commandLindCount * CHARACTER_HEIGHT, 1, emptyHandler);
             totallines += commandLindCount;
 
-            commandWidgetId = addInputFieldWidget(&desktop, commandColor, "", 0, totallines * CHARACTER_HEIGHT, width, height, 1, inputHandler);
+            commandWidgetId = addInputFieldWidget(&programWindow, commandColor, "", 0, totallines * CHARACTER_HEIGHT, width, CHARACTER_HEIGHT, 1, inputHandler);
 
-            if (totallines * CHARACTER_HEIGHT - desktop.height > 0)
+            int maximumOffset = getScrollableTotalHeight(&programWindow) - programWindow.height;
+            if (maximumOffset > 0)
             {
-                desktop.scrollOffset = totallines * CHARACTER_HEIGHT - desktop.height + CHARACTER_HEIGHT;
+                programWindow.scrollOffsetY = maximumOffset;
             }
         }
         else
         {
             inputFieldKeyHandler(w, msg);
+            //grow the height of the input field as we type
+            //may not be universal behavior for all input field
+            int newHeight = CHARACTER_HEIGHT * (getMouseYFromOffset(w->context.inputfield->text, width, strlen(w->context.inputfield->text)) + 1);
+            if (newHeight > height)
+            {
+                w->position.ymax = w->position.ymin + newHeight;
+            }
         }
     }
 }
@@ -156,16 +172,16 @@ int main(int argc, char *argv[])
 
     struct RGBA bgColor;
 
-    desktop.width = 400;
-    desktop.height = 407;
-    desktop.hasTitleBar = 1;
-    createWindow(&desktop, "shell");
+    programWindow.width = 400;
+    programWindow.height = 400;
+    programWindow.hasTitleBar = 1;
+    createWindow(&programWindow, "shell");
 
     bgColor.R = 255;
     bgColor.G = 255;
     bgColor.B = 255;
     bgColor.A = 250;
-    addColorFillWidget(&desktop, bgColor, 0, 0, desktop.width, desktop.height, 0, emptyHandler);
+    addColorFillWidget(&programWindow, bgColor, 0, 0, programWindow.width, programWindow.height, 0, emptyHandler);
 
     textColor.R = 2;
     textColor.G = 6;
@@ -178,10 +194,10 @@ int main(int argc, char *argv[])
 
     create_shell(&sh_pid, &rfd, &wfd);
 
-    commandWidgetId = addInputFieldWidget(&desktop, commandColor, "", 0, 0, desktop.width, desktop.height, 1, inputHandler);
+    commandWidgetId = addInputFieldWidget(&programWindow, commandColor, "", 0, 0, programWindow.width, CHARACTER_HEIGHT, 1, inputHandler);
 
     while (1)
     {
-        updateWindow(&desktop);
+        updateWindow(&programWindow);
     }
 }

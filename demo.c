@@ -51,7 +51,7 @@ int main()
     while (desktop2.handler!=-1)
     {
         if(uptime()-startTime>50) {
-            desktop2.scrollOffset +=CHARACTER_HEIGHT;
+            desktop2.scrollOffsetY +=CHARACTER_HEIGHT;
             desktop2.needsRepaint=1;
             startTime=uptime();
         }

@@ -70,6 +70,7 @@ typedef union widget_base {
 } widget_base;
 
 typedef struct Widget {
+    //struct window* window;
     widget_base context;
     int type;
     win_rect position;
@@ -84,7 +85,8 @@ typedef struct window {
     struct RGB *window_buf;
     int width;
     int height;
-    int scrollOffset;
+    int scrollOffsetX;
+    int scrollOffsetY;
     int handler;
     struct Widget widgets[MAX_WIDGET_SIZE];
     int widgetlisthead, widgetlisttail;

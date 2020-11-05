@@ -188,18 +188,20 @@ mkfs: mkfs.c fs.h
 
 UPROGS=\
 	_init\
-	_desktop\
 	_ls\
 	_sh\
-	_shell\
-	_demo\
+	_mkdir\
+	_zombie\
+	_desktop\
 	_startWindow\
 	_editor\
 	_explorer\
 	_shell\
+	_demo\
+	
 
-fs.img: mkfs README readme.txt $(UPROGS)
-	./mkfs fs.img README readme.txt $(UPROGS)
+fs.img: mkfs readme.txt $(UPROGS)
+	./mkfs fs.img readme.txt $(UPROGS)
 
 -include *.d
 
