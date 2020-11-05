@@ -50,9 +50,10 @@ Currently implemented GUI programs are desktop.c, demo.c, shell.c, editor.c, exp
 ## CURRENT ISSUES
 
 This project is still a work in progress. I couldn't devote more time to it being occupied by my research and other courses. Bugs are to be expected. Here are some of the issues I have found so far:
+- The mouse is sometimes restricted to a smaller rectangular region inside the screen. The "solution" is to move the mouse to the boundaries of the screen to calibrate its position. The keyboard driver does not recgonize some key combinations. I currently only consider single key input. 
 - In the shell program, the last response from the shell won't show up until you issue a new command. This because I send a command and reveive a command both when type '\n' in the shell. I haven't figured out how to solve this issue.
 - When you click the mkdir button in the file explorer to create a temp directory under the root directory, some other directories with random names are also being created. I have no idea how this happens... 
-- Sometimes the program just froze with trap number 13. 
+- Sometimes the program just froze with trap number 13 if you Ctrl+Alt+G and loose grab of the emulator. 
 
 ## FUTURE PLAN
 
