@@ -42,6 +42,7 @@ void draw24Image(struct RGB *, struct RGB *, int, int, int, int, int, int);
 void draw24ImagePart(struct RGB *, struct RGB *, int, int, int, int, int, int, int, int);
 void drawImage(struct RGB *, struct RGBA *, int, int, int, int, int, int);
 void drawRectBound(struct RGB *, int, int, int, int, struct RGBA, int, int);
+void drawRectBorder(struct RGB *buf, struct RGB color, int x, int y, int width, int height);
 
 // bio.c
 void binit(void);

@@ -21,6 +21,8 @@ int totallines = 0;
 struct RGBA commandColor;
 struct RGBA textColor;
 
+int inputOffset=10;
+
 void create_shell(int *p_pid, int *p_rfd, int *p_wfd)
 {
     char *sh_argv[] = {"sh", 0, 0};
@@ -137,15 +139,15 @@ void inputHandler(Widget *w, message *msg)
             }
 
             int respondLineCount = getMouseYFromOffset(read_buf, width, strlen(read_buf));
-            readCommand = addTextWidget(&programWindow, textColor, read_buf, 0, totallines * CHARACTER_HEIGHT, width, respondLineCount * CHARACTER_HEIGHT, 1, emptyHandler);
+            readCommand = addTextWidget(&programWindow, textColor, read_buf, inputOffset, inputOffset+totallines * CHARACTER_HEIGHT, width, respondLineCount * CHARACTER_HEIGHT, 1, emptyHandler);
             totallines += respondLineCount;
 
             int commandLindCount = getMouseYFromOffset(buffer, width, strlen(buffer)) + 1;
             removeWidget(&programWindow, commandWidgetId);
-            addTextWidget(&programWindow, commandColor, buffer, 0, totallines * CHARACTER_HEIGHT, width, commandLindCount * CHARACTER_HEIGHT, 1, emptyHandler);
+            addTextWidget(&programWindow, commandColor, buffer, inputOffset, inputOffset+totallines * CHARACTER_HEIGHT, width, commandLindCount * CHARACTER_HEIGHT, 1, emptyHandler);
             totallines += commandLindCount;
 
-            commandWidgetId = addInputFieldWidget(&programWindow, commandColor, "", 0, totallines * CHARACTER_HEIGHT, width, CHARACTER_HEIGHT, 1, inputHandler);
+            commandWidgetId = addInputFieldWidget(&programWindow, commandColor, "", inputOffset, inputOffset+totallines * CHARACTER_HEIGHT, width, CHARACTER_HEIGHT, 1, inputHandler);
 
             int maximumOffset = getScrollableTotalHeight(&programWindow) - programWindow.height;
             if (maximumOffset > 0)
@@ -194,7 +196,7 @@ int main(int argc, char *argv[])
 
     create_shell(&sh_pid, &rfd, &wfd);
 
-    commandWidgetId = addInputFieldWidget(&programWindow, commandColor, "", 0, 0, programWindow.width, CHARACTER_HEIGHT, 1, inputHandler);
+    commandWidgetId = addInputFieldWidget(&programWindow, commandColor, "", inputOffset, inputOffset, programWindow.width-2*inputOffset, CHARACTER_HEIGHT, 1, inputHandler);
 
     while (1)
     {

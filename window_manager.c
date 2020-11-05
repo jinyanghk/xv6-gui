@@ -454,7 +454,7 @@ void wmHandleMessage(message *msg)
 void drawWindowBar(struct RGB *dst, kernel_window *win, struct RGBA barcolor)
 {
 	int xmin = win->position.xmin;
-	int xmax = win->position.xmax;
+	int xmax = win->position.xmax+1;
 	int ymin = win->position.ymin - TITLE_HEIGHT;
 	int ymax = win->position.ymin;
 	drawRectByCoord(dst, xmin, ymin, xmax - 2 * TITLE_HEIGHT, ymax, barcolor);
@@ -472,6 +472,12 @@ void drawWindow(kernel_window *win)
 
 	draw24ImagePart(screen_buf1, win->window_buf, win->position.xmin, win->position.ymin,
 					width, height, 0, 0, width, height);
+	RGB color;
+	color.R = 0;
+	color.G = 0;
+	color.B = 0;
+	drawRectBorder(screen_buf1, color, win->position.xmin, win->position.ymin,
+				   width, height);
 
 	if (win->hasTitleBar)
 	{
@@ -670,7 +676,6 @@ int closeWindow(window_p window)
 	removeFromWindowList(winId);
 	windowlist[winId].prev = winId;
 	windowlist[winId].next = winId;
-	
 
 	initMessageQueue(&windowlist[winId].wnd.msg_buf);
 	memset(windowlist[winId].wnd.title, 0, MAX_TITLE_LEN);
