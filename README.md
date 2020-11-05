@@ -50,6 +50,9 @@ Currently implemented GUI programs are desktop.c, demo.c, shell.c, editor.c, exp
 ## CURRENT ISSUES
 
 This project is still a work in progress. I couldn't devote more time to it being occupied by my research and other courses. Bugs are to be expected. Here are some of the issues I have found so far:
+
+- The starting address for other devices (DEVSPACE in memlayout.h) has changed which makes me unable to access the video memory using the code from [Themis_GUI](https://github.com/YueDayu/Themis_GUI). I have mchanged this macro back to its previous value which seems to solve this issue. 
+- The file system is somehow reporting error as I add more code and file into the system. I have increased the block size (BSIZE) from 512 to 1024 which seems to solve the problem. However when adding more files this problem would emerge again and increase BSIZE further to 2048 will fail the system at start up. A rework of the file system is needed.
 - The mouse is sometimes restricted to a smaller rectangular region inside the screen. The "solution" is to move the mouse to the boundaries of the screen to calibrate its position. The keyboard driver does not recgonize some key combinations. I currently only consider single key input. 
 - In the shell program, the last response from the shell won't show up until you issue a new command. This because I send a command and reveive a command both when type '\n' in the shell. I haven't figured out how to solve this issue.
 - When you click the mkdir button in the file explorer to create a temp directory under the root directory, some other directories with random names are also being created. I have no idea how this happens... 
