@@ -43,7 +43,7 @@ There some predefined handlers such as the empty handler (does nothing), inputKe
 
 There are also situations when the total height of the widgets is too long (e.g. for a GUI shell). To deal with such situations, I add another attribute called scrollOffsetY to the window. The widgets can choose whether they are scrollable or not. The scrollable widgets are then painted with the scrollOffsetY subtracted in the y direction. The mouse y position is added by this scrollOffsetY when passing a message to these widgets. In this way we can create the illusion that the window is actually scrolling in the y direction. The x direction scrolling is also added. This y scrolling is currently used in the shell.c and editor.c program to accomondate long text.
 
-Currently implemented GUI programs are desktop.c, demo.c, shell.c, editor.c, explorer.c, startWindow.c (totaling of ~1000 lines of code). Other GUI related functions that I implemented takes ~2000 lines of code. The code I borrowed from [Themis_GUI](https://github.com/YueDayu/Themis_GUI) (mouse and keyboard driver, primitive painting functions, definition of macros and some structs) is around 1000 lines.
+Currently implemented GUI programs are desktop.c, demo.c, shell.c, editor.c, explorer.c, startWindow.c (totaling of ~1000 lines of code). Other GUI related functions that I implemented takes ~2000 lines of code. The code I borrowed from [Themis_GUI](https://github.com/YueDayu/Themis_GUI) (mouse and keyboard driver, primitive painting functions, definition of macros and some structs) is ~1000 lines.
 
 ![Image of GUI arch](/xv6_gui_architecture.png)
 
@@ -61,6 +61,7 @@ This project is still a work in progress. I couldn't devote more time to it bein
 ## FUTURE PLAN
 
 Here are some ideas I think can be explored in the future:
+- Add functions for drawing line, circle and other graph primitives. We can then imlement a simple painting program.
 - Redo the widget class. Organize widgets into a tree structure. Add layout widget class (row, column, grid,etc). Add messaging between widgets. Add more constraint options (percentage instead of actual pixels). Basically working towards a mini Flutter.
 - Pass draging gestures to widgets as well. Currently dragging only works for moving windows on the screen. 
 - Add system wide text selection, copy and paste (through the popup window functionality).
