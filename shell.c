@@ -21,7 +21,7 @@ int totallines = 0;
 struct RGBA commandColor;
 struct RGBA textColor;
 
-int inputOffset=10;
+int inputOffset = 10;
 
 void create_shell(int *p_pid, int *p_rfd, int *p_wfd)
 {
@@ -77,6 +77,7 @@ void create_shell(int *p_pid, int *p_rfd, int *p_wfd)
 int readCommand = -1;
 
 /*
+//for creating a scrollbar, needs update
 void scrollBarHandler(Widget *w, message *msg)
 {
     if (msg->msg_type == M_MOUSE_LEFT_CLICK)
@@ -94,6 +95,24 @@ void scrollBarHandler(Widget *w, message *msg)
             removeWidget(&programWindow, scrollBallId);
         }
         scrollBallId = addColorFillWidget(&programWindow, commandColor, programWindow.width - scrollableHeight, startHeight, scrollableHeight, scrollableHeight, 0, emptyHandler);
+    }
+}
+*/
+/*
+void readFromShell()
+{
+    int n;
+    // Read the result until get the initial string "$ "
+    memset(read_buf, 0, READBUFFERSIZE);
+    while ((n = read(rfd, read_buf, READBUFFERSIZE)) > 0)
+    {
+
+        if (read_buf[n - 2] == init_string[0] && read_buf[n - 1] == init_string[1])
+        {
+            memset(read_buf + n - 2, '\0', 1);
+            break;
+        }
+        memset(read_buf, 0, READBUFFERSIZE);
     }
 }
 */
@@ -128,26 +147,29 @@ void inputHandler(Widget *w, message *msg)
                 memset(read_buf, 0, READBUFFERSIZE);
                 while ((n = read(rfd, read_buf, READBUFFERSIZE)) > 0)
                 {
-
+                    //printf(1, "reading back\n");
+                    //printf(1, read_buf);
                     if (read_buf[n - 2] == init_string[0] && read_buf[n - 1] == init_string[1])
                     {
+                        printf(1, read_buf);
                         memset(read_buf + n - 2, '\0', 1);
+
                         break;
                     }
-                    memset(read_buf, 0, READBUFFERSIZE);
+                    //memset(read_buf, 0, READBUFFERSIZE);
                 }
             }
 
             int respondLineCount = getMouseYFromOffset(read_buf, width, strlen(read_buf));
-            readCommand = addTextWidget(&programWindow, textColor, read_buf, inputOffset, inputOffset+totallines * CHARACTER_HEIGHT, width, respondLineCount * CHARACTER_HEIGHT, 1, emptyHandler);
+            readCommand = addTextWidget(&programWindow, textColor, read_buf, inputOffset, inputOffset + totallines * CHARACTER_HEIGHT, width, respondLineCount * CHARACTER_HEIGHT, 1, emptyHandler);
             totallines += respondLineCount;
 
             int commandLindCount = getMouseYFromOffset(buffer, width, strlen(buffer)) + 1;
             removeWidget(&programWindow, commandWidgetId);
-            addTextWidget(&programWindow, commandColor, buffer, inputOffset, inputOffset+totallines * CHARACTER_HEIGHT, width, commandLindCount * CHARACTER_HEIGHT, 1, emptyHandler);
+            addTextWidget(&programWindow, commandColor, buffer, inputOffset, inputOffset + totallines * CHARACTER_HEIGHT, width, commandLindCount * CHARACTER_HEIGHT, 1, emptyHandler);
             totallines += commandLindCount;
 
-            commandWidgetId = addInputFieldWidget(&programWindow, commandColor, "", inputOffset, inputOffset+totallines * CHARACTER_HEIGHT, width, CHARACTER_HEIGHT, 1, inputHandler);
+            commandWidgetId = addInputFieldWidget(&programWindow, commandColor, "", inputOffset, inputOffset + totallines * CHARACTER_HEIGHT, width, CHARACTER_HEIGHT, 1, inputHandler);
 
             int maximumOffset = getScrollableTotalHeight(&programWindow) - programWindow.height;
             if (maximumOffset > 0)
@@ -196,7 +218,7 @@ int main(int argc, char *argv[])
 
     create_shell(&sh_pid, &rfd, &wfd);
 
-    commandWidgetId = addInputFieldWidget(&programWindow, commandColor, "", inputOffset, inputOffset, programWindow.width-2*inputOffset, CHARACTER_HEIGHT, 1, inputHandler);
+    commandWidgetId = addInputFieldWidget(&programWindow, commandColor, "", inputOffset, inputOffset, programWindow.width - 2 * inputOffset, CHARACTER_HEIGHT, 1, inputHandler);
 
     while (1)
     {

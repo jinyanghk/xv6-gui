@@ -34,6 +34,9 @@ static struct
 	int next, prev;
 } windowlist[MAX_WINDOW_CNT];
 
+static int windowlisthead, windowlisttail;
+static int desktopId = -1;
+
 static struct
 {
 	struct proc *proc;
@@ -41,8 +44,24 @@ static struct
 	int caller;
 } popupwindow;
 
-static int windowlisthead, windowlisttail;
-static int desktopId = -1;
+static int mouseShape;
+
+static int clickedOnTitle, clickedOnContent, clickedOnPopup;
+
+struct spinlock wmlock;
+
+static struct
+{
+	int x, y;
+} wm_mouse_pos, wm_last_mouse_pos;
+
+#define MOUSE_SPEED_X 1
+#define MOUSE_SPEED_Y -1
+
+int isInRect(int xmin, int ymin, int xmax, int ymax, int x, int y)
+{
+	return (x >= xmin && x <= xmax && y >= ymin && y <= ymax);
+}
 
 void createRectByCoord(win_rect *rect, int xmin, int ymin, int xmax, int ymax)
 {
@@ -58,6 +77,14 @@ void createRectBySize(win_rect *rect, int xmin, int ymin, int width, int height)
 	rect->xmax = xmin + width;
 	rect->ymin = ymin;
 	rect->ymax = ymin + height;
+}
+
+void moveRect(win_rect *rect, int dx, int dy)
+{
+	rect->xmin += dx;
+	rect->xmax += dx;
+	rect->ymin += dy;
+	rect->ymax += dy;
 }
 
 int findNextAvailableWindowId()
@@ -91,21 +118,9 @@ void removeFromWindowList(int idx)
 		windowlist[windowlist[idx].next].prev = windowlist[idx].prev;
 }
 
-static int clickedOnTitle, clickedOnContent, clickedOnPopup;
-
-struct spinlock wmlock;
-
-static struct
+void initMessageQueue(msg_buf *buf)
 {
-	int x, y;
-} wm_mouse_pos, wm_last_mouse_pos;
-
-#define MOUSE_SPEED_X 1
-#define MOUSE_SPEED_Y -1
-
-int isInRect(int xmin, int ymin, int xmax, int ymax, int x, int y)
-{
-	return (x >= xmin && x <= xmax && y >= ymin && y <= ymax);
+	buf->front = buf->rear = buf->cnt = 0;
 }
 
 int dispatchMessage(msg_buf *buf, message *msg)
@@ -129,11 +144,6 @@ int getMessage(msg_buf *buf, message *result)
 	if ((++buf->front) >= MSG_BUF_SIZE)
 		buf->front = 0;
 	return 0;
-}
-
-void initMessageQueue(msg_buf *buf)
-{
-	buf->front = buf->rear = buf->cnt = 0;
 }
 
 void wmInit()
@@ -162,6 +172,7 @@ void wmInit()
 	minimizeColor.R = minimizeColor.G = minimizeColor.B = 120;
 	minimizeColor.A = 255;
 
+	mouseShape = 0;
 	wm_mouse_pos.x = SCREEN_WIDTH / 2;
 	wm_mouse_pos.y = SCREEN_HEIGHT / 2;
 	wm_last_mouse_pos = wm_mouse_pos;
@@ -180,14 +191,6 @@ void wmInit()
 	clickedOnTitle = clickedOnContent = clickedOnPopup = 0;
 
 	initlock(&wmlock, "wmlock");
-}
-
-void moveRect(win_rect *rect, int dx, int dy)
-{
-	rect->xmin += dx;
-	rect->xmax += dx;
-	rect->ymin += dy;
-	rect->ymax += dy;
 }
 
 void debugPrintWindowList()
@@ -257,7 +260,8 @@ void handleDesktopDockClick(int mouse_x, message *msg)
 {
 	int p;
 	int windowCount = getWindowCount();
-	if (windowCount > 0)
+
+	if (windowCount > 0) //handle each program dock bar click
 	{
 		int xStart = START_ICON_WIDTH + 5;
 		int barWidth = min((SCREEN_WIDTH - START_ICON_WIDTH - SHOW_DESKTOP_ICON_WIDTH) / (windowCount + 1), DOCK_PROGRAM_NORMAL_WIDTH);
@@ -283,7 +287,7 @@ void handleDesktopDockClick(int mouse_x, message *msg)
 			}
 		}
 	}
-	if (mouse_x >= SCREEN_WIDTH - SHOW_DESKTOP_ICON_WIDTH)
+	if (mouse_x >= SCREEN_WIDTH - SHOW_DESKTOP_ICON_WIDTH) //handle show desktop icon click
 	{
 		for (p = windowlisthead; p != -1; p = windowlist[p].next)
 		{
@@ -298,7 +302,7 @@ void handleDesktopDockClick(int mouse_x, message *msg)
 			}
 		}
 	}
-	if (mouse_x <= START_ICON_WIDTH && msg->msg_type == M_MOUSE_LEFT_CLICK)
+	if (mouse_x <= START_ICON_WIDTH && msg->msg_type == M_MOUSE_LEFT_CLICK) //handle start window icon click
 	{
 		if (popupwindow.caller != desktopId)
 		{
@@ -311,6 +315,7 @@ void handleDesktopDockClick(int mouse_x, message *msg)
 	}
 }
 
+//handle messages from mouse and keyboard
 void wmHandleMessage(message *msg)
 {
 	acquire(&wmlock);
@@ -338,9 +343,17 @@ void wmHandleMessage(message *msg)
 		if (wm_mouse_pos.y < 0)
 			wm_mouse_pos.y = 0;
 
-		if (clickedOnTitle)
+		if (clickedOnTitle) //dragging the title bar
 		{
+			mouseShape = 1;
 			moveFocusWindow(wm_mouse_pos.x - wm_last_mouse_pos.x, wm_mouse_pos.y - wm_last_mouse_pos.y);
+		}
+		else if (clickedOnContent) //dragging inside the window
+		{
+			newmsg.msg_type = msg->msg_type;
+			newmsg.params[0] = wm_mouse_pos.x - windowlist[windowlisttail].wnd.position.xmin;
+			newmsg.params[1] = wm_mouse_pos.y - windowlist[windowlisttail].wnd.position.ymin;
+			dispatchMessage(&windowlist[windowlisttail].wnd.msg_buf, &newmsg);
 		}
 		break;
 	case M_MOUSE_DOWN:
@@ -360,7 +373,7 @@ void wmHandleMessage(message *msg)
 			for (; p != -1; p = windowlist[p].prev)
 			{
 				kernel_window *win = &windowlist[p].wnd;
-				if (p != desktopId && isInRect(win->position.xmin, win->position.ymin - TITLE_HEIGHT, win->position.xmax, win->position.ymax, wm_mouse_pos.x, wm_mouse_pos.y))
+				if (p != desktopId && win->minimized!=1 && isInRect(win->position.xmin, win->position.ymin - TITLE_HEIGHT, win->position.xmax, win->position.ymax, wm_mouse_pos.x, wm_mouse_pos.y))
 				{
 					focusWindow(p);
 					break;
@@ -390,15 +403,19 @@ void wmHandleMessage(message *msg)
 					clickedOnTitle = 1;
 				}
 			}
+			//dispatch the message
 			if (isInRect(win->position.xmin, win->position.ymin, win->position.xmax, win->position.ymax, wm_mouse_pos.x, wm_mouse_pos.y))
 			{
 				clickedOnContent = 1;
+				newmsg.msg_type = msg->msg_type;
+				newmsg.params[0] = wm_mouse_pos.x - popupwindow.wnd.position.xmin;
+				newmsg.params[1] = wm_mouse_pos.y - popupwindow.wnd.position.ymin;
+				dispatchMessage(&windowlist[windowlisttail].wnd.msg_buf, &newmsg);
 			}
 		}
 
 		break;
 
-	//now window content only responds to mouse clicks and keyboard, does not respond to mouse drag
 	case M_MOUSE_LEFT_CLICK:
 	case M_MOUSE_RIGHT_CLICK:
 	case M_MOUSE_DBCLICK:
@@ -408,12 +425,14 @@ void wmHandleMessage(message *msg)
 			newmsg.msg_type = msg->msg_type;
 			newmsg.params[0] = wm_mouse_pos.x - popupwindow.wnd.position.xmin;
 			newmsg.params[1] = wm_mouse_pos.y - popupwindow.wnd.position.ymin;
-			//cprintf("message type %d, dispatch to %d\n", msg->msg_type, windowlisttail);
 			dispatchMessage(&popupwindow.wnd.msg_buf, &newmsg);
 		}
 		else if (clickedOnContent)
 		{
 			clickedOnContent = 0;
+			//check if clicked on window dock
+			//because we have a simple dock, updating it is entirely in the kernel.
+			//if we want, we can let the desktop program handle it with the help of some new system calls related to the information of opened windows.
 			if (windowlisttail == desktopId && wm_mouse_pos.y >= SCREEN_HEIGHT - DOCK_HEIGHT && wm_mouse_pos.y <= SCREEN_HEIGHT)
 			{
 				handleDesktopDockClick(wm_mouse_pos.x, msg);
@@ -434,11 +453,16 @@ void wmHandleMessage(message *msg)
 		if (clickedOnContent)
 		{
 			clickedOnContent = 0;
+			newmsg.msg_type = msg->msg_type;
+			newmsg.params[0] = wm_mouse_pos.x - windowlist[windowlisttail].wnd.position.xmin;
+			newmsg.params[1] = wm_mouse_pos.y - windowlist[windowlisttail].wnd.position.ymin;
+			dispatchMessage(&windowlist[windowlisttail].wnd.msg_buf, &newmsg);
 		}
 		if (clickedOnTitle)
 		{
 			clickedOnTitle = 0;
 		}
+		mouseShape = 0;
 		break;
 	case M_KEY_DOWN:
 	case M_KEY_UP:
@@ -454,7 +478,7 @@ void wmHandleMessage(message *msg)
 void drawWindowBar(struct RGB *dst, kernel_window *win, struct RGBA barcolor)
 {
 	int xmin = win->position.xmin;
-	int xmax = win->position.xmax+1;
+	int xmax = win->position.xmax + 1;
 	int ymin = win->position.ymin - TITLE_HEIGHT;
 	int ymax = win->position.ymin;
 	drawRectByCoord(dst, xmin, ymin, xmax - 2 * TITLE_HEIGHT, ymax, barcolor);
@@ -470,18 +494,19 @@ void drawWindow(kernel_window *win)
 	int width = win->position.xmax - win->position.xmin;
 	int height = win->position.ymax - win->position.ymin;
 
-	draw24ImagePart(screen_buf1, win->window_buf, win->position.xmin, win->position.ymin,
+	//directly flush the RGB array of window onto screen_buf
+	draw24ImagePart(screen_buf, win->window_buf, win->position.xmin, win->position.ymin,
 					width, height, 0, 0, width, height);
 	RGB color;
 	color.R = 0;
 	color.G = 0;
 	color.B = 0;
-	drawRectBorder(screen_buf1, color, win->position.xmin, win->position.ymin,
+	drawRectBorder(screen_buf, color, win->position.xmin, win->position.ymin,
 				   width, height);
 
 	if (win->hasTitleBar)
 	{
-		drawWindowBar(screen_buf1, win, titleBarColor);
+		drawWindowBar(screen_buf, win, titleBarColor);
 	}
 }
 
@@ -511,15 +536,19 @@ void drawDesktopDock(struct RGB *dst)
 	drawIcon(dst, START_ICON_WIDTH / 2 - 15, SCREEN_HEIGHT - DOCK_HEIGHT + 3, 2, iconColor);
 }
 
+//the only place that actually updates the screen
 void updateScreen()
 {
 
 	acquire(&wmlock);
 
-	memset(screen_buf1, 255, screen_size);
+	memset(screen_buf, 255, screen_size);
+	//draw desktop first
 	drawWindow(&windowlist[desktopId].wnd);
-	drawDesktopDock(screen_buf1);
+	drawDesktopDock(screen_buf);
 
+	//draw other windows in order
+	//switch uvm to allow access to the RGB array of those windows
 	int p;
 	for (p = windowlisthead; p != -1; p = windowlist[p].next)
 	{
@@ -530,19 +559,22 @@ void updateScreen()
 		}
 	}
 
+	//draw popup window if there is one
 	if (popupwindow.caller != -1)
 	{
 		switchuvm(popupwindow.proc);
 		drawWindow(&popupwindow.wnd);
 	}
 
+	//switch back to the desktop process (because it is the only process that calls this function)
 	if (myproc() == 0)
 		switchkvm();
 	else
 		switchuvm(windowlist[desktopId].proc);
 
-	drawMouse(screen_buf1, 0, wm_mouse_pos.x, wm_mouse_pos.y);
-	memmove(screen, screen_buf1, screen_size);
+	//draw the mouse
+	drawMouse(screen_buf, mouseShape, wm_mouse_pos.x, wm_mouse_pos.y);
+	memmove(screen, screen_buf, screen_size);
 
 	release(&wmlock);
 }
@@ -603,10 +635,7 @@ int createWindow(window_p window, char *title)
 	{
 		len = MAX_TITLE_LEN;
 	}
-
 	memmove(windowlist[winId].wnd.title, title, len);
-
-	//debugPrintWindowList();
 
 	release(&wmlock);
 
@@ -637,7 +666,6 @@ int createPopupWindow(window_p window, int caller)
 		createRectByCoord(&popupwindow.wnd.position, xmin, ymin, xmax, ymax);
 	}
 
-	//cprintf("create popup for %d\n", caller);
 	popupwindow.wnd.window_buf = window->window_buf;
 	popupwindow.caller = caller;
 	window->handler = caller;
@@ -645,8 +673,6 @@ int createPopupWindow(window_p window, int caller)
 	popupwindow.wnd.minimized = 0;
 	popupwindow.wnd.hasTitleBar = window->hasTitleBar;
 	initMessageQueue(&popupwindow.wnd.msg_buf);
-
-	//debugPrintWindowList();
 
 	release(&wmlock);
 	return 0;
@@ -680,9 +706,9 @@ int closeWindow(window_p window)
 	initMessageQueue(&windowlist[winId].wnd.msg_buf);
 	memset(windowlist[winId].wnd.title, 0, MAX_TITLE_LEN);
 
-	if (winId == windowlisttail && windowlisttail >= 1)
+	if (winId == windowlisttail)
 	{
-		focusWindow(winId - 1);
+		focusWindow(windowlist[winId].prev);
 	}
 
 	window->handler = -1;
@@ -700,6 +726,10 @@ int minimizeWindow(window_p window)
 	int winId = window->handler;
 
 	windowlist[winId].wnd.minimized = 1;
+	if (winId == windowlisttail)
+	{
+		focusWindow(windowlist[winId].prev);
+	}
 
 	release(&wmlock);
 
@@ -721,6 +751,7 @@ int maximizeWindow(window_p window)
 	return 0;
 }
 
+//doesn't seem to work...
 int turnoffScreen()
 {
 	acquire(&wmlock);
@@ -731,14 +762,15 @@ int turnoffScreen()
 		newmsg.msg_type = WM_WINDOW_CLOSE;
 		dispatchMessage(&windowlist[p].wnd.msg_buf, &newmsg);
 	}
-	memset(screen_buf1, 255, screen_size);
-	memmove(screen, screen_buf1, screen_size);
+	memset(screen_buf, 255, screen_size);
+	memmove(screen, screen_buf, screen_size);
 
 	release(&wmlock);
 
 	return 0;
 }
 
+//system calls 
 int sys_GUI_createPopupWindow()
 {
 	window *wnd;

@@ -29,7 +29,7 @@ char* getFileExtension(char *filename)
     static char buf[DIRSIZ + 1];
     char *p;
 
-    // Find first character after last slash.
+    // Find first character after last .
     for (p = filename + strlen(filename); p >= filename && *p != '.'; p--)
         ;
     p++;
@@ -119,7 +119,7 @@ void buttonHandler(Widget *widget, message *msg)
             //printf(1, getFileExtension(fileName));
             if (strcmp(getFileExtension(fileName), "txt") == 0)
             {
-                printf(1, "\nopen editor\n");
+                //printf(1, "\nopen editor\n");
                 char *argv2[] = {"editor", widget->context.text->text};
                 exec(argv2[0], argv2);
                 exit();

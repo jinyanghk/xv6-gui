@@ -25,14 +25,25 @@ struct Widget;
 // @para: window widget_index message
 typedef void(*Handler)(struct Widget * widget, struct message *msg);
 
-// @para: window widget_index
-//typedef void(*painter)(struct window *win);
-
 #define TEXT 0
 #define INPUTFIELD 1
 #define BUTTON 2
 #define ICON 3
 #define COLORFILL 4
+#define SHAPE 5
+#define IMAGE 6
+
+#define RECTANGLE 0
+#define LINE 1
+#define CIRCLE 2
+
+typedef struct Shape {
+    int shape;
+    int params[10];
+    int filled;
+    struct RGBA color;
+    struct RGBA filledColor;
+} Shape;
 
 typedef struct ColorFill {
     struct RGB* buf;
@@ -67,10 +78,10 @@ typedef union widget_base {
     Text *text;
     InputField *inputfield;
     Icon * icon;
+    Shape* shape;
 } widget_base;
 
 typedef struct Widget {
-    //struct window* window;
     widget_base context;
     int type;
     win_rect position;

@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
        addButtonWidget(&desktop, textColor, buttonColor, GUI_programs[i], 20, 20 + 50*i, 80, 30, 1, startProgramHandler); 
     }
 
-    addButtonWidget(&desktop, textColor, buttonColor, "start", 5, SCREEN_HEIGHT - 30, 60, 25, 0, startWindowHandler);
+    addButtonWidget(&desktop, textColor, buttonColor, "start", 5, SCREEN_HEIGHT - 36, 72, 36, 0, startWindowHandler);
 
     int lastTime = 0;
     while (1)

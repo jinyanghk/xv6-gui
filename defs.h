@@ -26,7 +26,7 @@ extern int screen_size;
 extern ushort SCREEN_WIDTH;
 extern ushort SCREEN_HEIGHT;
 extern struct RGB *screen;
-extern struct RGB *screen_buf1;
+extern struct RGB *screen_buf;
 void initGUI(void);
 int drawCharacter(struct RGB *, int, int, char, struct RGBA);
 int drawIcon(struct RGB *buf, int x, int y, int icon, struct RGBA color);

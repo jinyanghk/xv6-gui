@@ -10,7 +10,7 @@ void emptyHandler(Widget *w, message *msg)
 int getInputOffsetFromMousePosition(char *str, int width, int mouse_x, int mouse_y)
 {
 
-    printf(1, "mouse int at %d, %d\n", mouse_x, mouse_y);
+    //printf(1, "mouse int at %d, %d\n", mouse_x, mouse_y);
     int charPerLine = width / CHARACTER_WIDTH;
     int offset_x = 0;
     int offset_y = 0;
@@ -55,7 +55,7 @@ int getInputOffsetFromMousePosition(char *str, int width, int mouse_x, int mouse
 
 int getMouseXFromOffset(char *str, int width, int offset)
 {
-    //int height = w->position.ymax - w->position.ymin;
+
     int charPerLine = width / CHARACTER_WIDTH;
     int offset_x = 0;
     int offset_y = 0;
@@ -83,7 +83,7 @@ int getMouseXFromOffset(char *str, int width, int offset)
 
 int getMouseYFromOffset(char *str, int width, int offset)
 {
-    //int height = w->position.ymax - w->position.ymin;
+
     int charPerLine = width / CHARACTER_WIDTH;
     int offset_x = 0;
     int offset_y = 0;
@@ -111,7 +111,7 @@ int getMouseYFromOffset(char *str, int width, int offset)
 
 int getScrollableTotalHeight(window *win)
 {
-    //int height = w->position.ymax - w->position.ymin;
+
     int totalHeight = 0;
     int p;
     for (p = win->widgetlisthead; p != -1; p = win->widgets[p].next)
@@ -125,6 +125,7 @@ int getScrollableTotalHeight(window *win)
     ;
 }
 
+//scrollbar needs more implementation
 int addScrollBarWidget(window *window, RGBA color, Handler scrollBarHandler)
 {
     //int totalHeight = getScrollableTotalHeight(window);
@@ -132,6 +133,7 @@ int addScrollBarWidget(window *window, RGBA color, Handler scrollBarHandler)
     return addColorFillWidget(window, color, window->width - 20, 0, window->width, window->height, 0, scrollBarHandler);
 }
 
+//change text cursor from mouse click
 void inputMouseLeftClickHandler(Widget *w, message *msg)
 {
     if (msg->msg_type != M_MOUSE_LEFT_CLICK)
@@ -140,7 +142,6 @@ void inputMouseLeftClickHandler(Widget *w, message *msg)
     int mouse_x = msg->params[0];
     int mouse_y = msg->params[1];
     int width = w->position.xmax - w->position.xmin;
-    //int charCount = strlen(w->context.inputfield->text);
 
     int mouse_char_y = (mouse_y - w->position.ymin) / CHARACTER_HEIGHT;
     int mouse_char_x = (mouse_x - w->position.xmin) / CHARACTER_WIDTH;
@@ -153,22 +154,20 @@ void inputFieldKeyHandler(Widget *w, message *msg)
 {
     if (msg->msg_type != M_KEY_DOWN)
         return;
-    int width = w->position.xmax - w->position.xmin;
-    //int height = w->position.ymax - w->position.ymin;
-    //int charPerLine = width / CHARACTER_WIDTH;
+    int width = w->position.xmax - w->position.xmin;;
     int charCount = strlen(w->context.inputfield->text);
-    //if(charCount>500) return;
     int newChar = msg->params[0];
-    //printf(1, "new Char %d\n", newChar);
+
+    //currently supported ASCII characters
     if ((newChar >= ' ' && newChar <= '~') || newChar == '\n')
     {
         char temp[MAX_LONG_STRLEN];
         strcpy(temp, w->context.inputfield->text + w->context.inputfield->current_pos);
         w->context.inputfield->text[w->context.inputfield->current_pos++] = newChar;
         strcpy(w->context.inputfield->text + w->context.inputfield->current_pos, temp);
-        //w->context.inputfield->text[charCount+1] = '\0';
-        //w->context.inputfield->current_pos=charCount;
+
     }
+    //handle arrow keys to change text cursor
     if (newChar == KEY_LF && w->context.inputfield->current_pos > 0)
     {
         w->context.inputfield->current_pos--;
@@ -180,7 +179,6 @@ void inputFieldKeyHandler(Widget *w, message *msg)
 
     int current_pos_mouse_X = getMouseXFromOffset(w->context.inputfield->text, width, w->context.inputfield->current_pos);
     int current_pos_mouse_Y = getMouseYFromOffset(w->context.inputfield->text, width, w->context.inputfield->current_pos);
-
     if (newChar == KEY_UP)
     {
         w->context.inputfield->current_pos = getInputOffsetFromMousePosition(w->context.inputfield->text, width, current_pos_mouse_X, current_pos_mouse_Y - 1);
@@ -189,7 +187,7 @@ void inputFieldKeyHandler(Widget *w, message *msg)
     {
         w->context.inputfield->current_pos = getInputOffsetFromMousePosition(w->context.inputfield->text, width, current_pos_mouse_X, current_pos_mouse_Y + 1);
     }
-
+    //handle delete key
     if (newChar == '\b' && w->context.inputfield->current_pos > 0)
     {
         char temp[MAX_LONG_STRLEN];

@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 {
 
     int caller = (int)argv[1];
-    printf(1, "start window created for %d\n", caller);
+    //printf(1, "start window created for %d\n", caller);
 
     startWindow.width = 3 * START_ICON_WIDTH;
     startWindow.height = SCREEN_HEIGHT / 2;
@@ -56,12 +56,9 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < 4; i++)
     {
-        addButtonWidget(&startWindow, textColor, buttonColor, GUI_programs[i], 20, 20 + 50 * i, 80, 30, 1, startProgramHandler);
+        addButtonWidget(&startWindow, textColor, buttonColor, GUI_programs[i], 20, 20 + 50 * i, 80, 30, 0, startProgramHandler);
     }
 
-    //addButtonWidget(&startWindow, textColor, buttonColor, "power off", 20, startWindow.height -40, 80, 30, 1, poweroffHandler);
-
-    //int startTime=uptime();
     while (1)
     {
         updatePopupWindow(&startWindow);

@@ -16,7 +16,7 @@ ushort SCREEN_HEIGHT;
 int screen_size;
 
 RGB *screen;
-RGB *screen_buf1;
+RGB *screen_buf;
 
 void initGUI()
 {
@@ -27,7 +27,7 @@ void initGUI()
     SCREEN_WIDTH = *((ushort *)(KERNBASE + 0x1012));
     SCREEN_HEIGHT = *((ushort *)(KERNBASE + 0x1014));
     screen_size = (SCREEN_WIDTH * SCREEN_HEIGHT) * 3;
-    screen_buf1 = (RGB *)(baseAdd + screen_size);
+    screen_buf = (RGB *)(baseAdd + screen_size);
     //screen_buf2 = (RGB *) (baseAdd + screen_size * 2);
 
     mouse_color[0].G = 0;

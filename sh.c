@@ -142,7 +142,7 @@ void runcmd(struct cmd *cmd)
 int getcmd(int rfd, char *buf, int nbuf)
 {
 
-  printf(2, "$ ");
+  //printf(2, "$ ");
   memset(buf, 0, nbuf);
   //gets(buf, nbuf);
   read(rfd, buf, nbuf);
@@ -181,7 +181,6 @@ int main(int argc, char *argv[])
   // Read and run input commands.
   while (getcmd(rfd, buf, sizeof(buf)) >= 0)
   {
-    //printf(1, "sh get command is %s\n", buf);
     if (buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' ')
     {
       // Chdir must be called by the parent, not the child.
@@ -197,6 +196,7 @@ int main(int argc, char *argv[])
       runcmd(parsecmd(buf));
     }
     wait();
+    printf(2, "$ ");
     dup(wfd);
   }
 

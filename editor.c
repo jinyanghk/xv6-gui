@@ -43,13 +43,10 @@ void buttonHandler(Widget *widget, message *msg)
 
 void inputHandler(Widget *w, message *msg)
 {
-    int mouse_x = msg->params[0];
-    int mouse_y = msg->params[1];
+
     int width = w->position.xmax - w->position.xmin;
-    printf(1, "mouse at %d, %d\n", mouse_x, mouse_y);
     int height = w->position.ymax - w->position.ymin;
-    //int charPerLine = width / CHARACTER_WIDTH;
-    //int charCount = strlen(w->context.inputfield->text);
+
     if (msg->msg_type == M_MOUSE_LEFT_CLICK)
     {
         inputMouseLeftClickHandler(w, msg);
@@ -74,8 +71,7 @@ void inputHandler(Widget *w, message *msg)
         }
 
         int currentHeight = getMouseYFromOffset(w->context.inputfield->text, width, w->context.inputfield->current_pos) * CHARACTER_HEIGHT+ w->position.ymin - programWindow.scrollOffsetY;
-        printf(1, "maximum offset %d, currentheight %d\n", maximumOffset, currentHeight);
-        printf(1, "mcurrent offset %d\n",programWindow.scrollOffsetY);
+
         if (currentHeight <= w->position.ymin && programWindow.scrollOffsetY>0)
             programWindow.scrollOffsetY -= CHARACTER_HEIGHT;
         if (currentHeight >= programWindow.height-1 && programWindow.scrollOffsetY<=maximumOffset)
@@ -104,7 +100,6 @@ int main(int argc, char *argv[])
     textColor.G = 6;
     textColor.B = 5;
     textColor.A = 255;
-    //drawIcon(&programWindow, 10, 10, 3, color);
 
     if (argc > 1)
     {

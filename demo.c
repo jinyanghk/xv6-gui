@@ -6,32 +6,14 @@
 #include "user_window.h"
 #include "gui.h"
 
-void buttonHandler(Widget *widget, message *msg)
-{
-    if (msg->msg_type == M_MOUSE_DBCLICK)
-    {
-        if (fork() == 0)
-        {
-            printf(1, "fork new process\n");
-            char *argv2[] = {"demo"};
-            exec(argv2[0], argv2);
-            exit();
-        }
-    }
-}
-
-int floatingButtonId;
-
 int main()
 {
 
-    printf(1, "demo created\n");
-
-    window desktop2;
-    desktop2.width = 400;
-    desktop2.height = 200;
-    desktop2.hasTitleBar = 1;
-    createWindow(&desktop2, "demo");
+    window programWindow;
+    programWindow.width = 400;
+    programWindow.height = 200;
+    programWindow.hasTitleBar = 1;
+    createWindow(&programWindow, "demo");
 
     struct RGBA color;
     color.R = 219;
@@ -44,38 +26,38 @@ int main()
     desktopColor.G = 100;
     desktopColor.B = 24;
     desktopColor.A = 200;
-    addColorFillWidget(&desktop2, desktopColor, 0, 0, desktop2.width, desktop2.height, 0, emptyHandler);
+    addColorFillWidget(&programWindow, desktopColor, 0, 0, programWindow.width, programWindow.height, 0, emptyHandler);
 
     int birdWidth=10*CHARACTER_WIDTH;
     int birdHeight=4*CHARACTER_HEIGHT;
 
-    floatingButtonId=addTextWidget(&desktop2, color, 
-"    __\n___( o)>\n\\ <_. ) \n `---\'  ", 0, desktop2.height/2-2*CHARACTER_HEIGHT, birdWidth,  birdHeight, 1, buttonHandler);
+    addTextWidget(&programWindow, color, 
+"    __\n___( o)>\n\\ <_. ) \n `---\'  ", 0, programWindow.height/2-2*CHARACTER_HEIGHT, birdWidth,  birdHeight, 1, emptyHandler);
     
 
     int startTime=uptime();
     int yDirection=1;
-    while (desktop2.handler!=-1)
+    while (1)
     {
         if (uptime() - startTime > 20)
         {
-            if(desktop2.scrollOffsetX<-desktop2.width) {
-                desktop2.scrollOffsetX=birdWidth;
+            if(programWindow.scrollOffsetX<-programWindow.width) {
+                programWindow.scrollOffsetX=birdWidth;
             }
-            desktop2.scrollOffsetX -= 2 * CHARACTER_WIDTH;
+            programWindow.scrollOffsetX -= 2 * CHARACTER_WIDTH;
             
-            if(desktop2.scrollOffsetY>CHARACTER_HEIGHT) {
+            if(programWindow.scrollOffsetY>CHARACTER_HEIGHT) {
                 yDirection= -1;
             }
-            if(desktop2.scrollOffsetY<-CHARACTER_HEIGHT) {
+            if(programWindow.scrollOffsetY<-CHARACTER_HEIGHT) {
                 yDirection= 1;
             }
-            desktop2.scrollOffsetY+=yDirection*CHARACTER_HEIGHT;
+            programWindow.scrollOffsetY+=yDirection*CHARACTER_HEIGHT;
             
-            desktop2.needsRepaint = 1;
+            programWindow.needsRepaint = 1;
             startTime = uptime();
         }
-        updateWindow(&desktop2);
+        updateWindow(&programWindow);
         
     }
 }

@@ -1,24 +1,17 @@
 #include "types.h"
 #include "stat.h"
-//#include "color.h"
 #include "msg.h"
 #include "user.h"
 #include "fcntl.h"
 #include "user_window.h"
 #include "fs.h"
 #include "gui.h"
-//#include "character.h"
-
-//#define SCREEN_WIDTH 800
-//#define SCREEN_HEIGHT 600
-#define CHARACTER_WIDTH 9
-#define CHARACTER_HEIGHT 18
 
 void drawColorFillWidget(window *win, Widget *w);
 void drawButtonWidget(window *win, Widget *w);
 void drawTextWidget(window *win, Widget *w);
 void drawInputFieldWidget(window *win, Widget *w);
-
+void drawShapeWidget(window *win, Widget *w);
 int freeWidget(window *win, int index);
 
 void debugPrintWidgetList(window *win)
@@ -71,7 +64,6 @@ void createPopupWindow(window *win, int caller)
     win->hasTitleBar = 0;
     win->scrollOffsetX = 0;
     win->scrollOffsetY = 0;
-    //initlock(&win->wmlock, "wmlock");
     GUI_createPopupWindow(win, caller);
 }
 
@@ -129,9 +121,8 @@ void closeWindow(window *win)
     exit();
 }
 
-void updateWindow(window *win)
+void repaintWindow(window *win)
 {
-    //debugPrintWidgetList(win);
     if (win->needsRepaint)
     {
         //memset(win->window_buf, 255, win->height * win->width * 3);
@@ -164,17 +155,25 @@ void updateWindow(window *win)
             case INPUTFIELD:
                 drawInputFieldWidget(win, &win->widgets[p]);
                 break;
+            case SHAPE:
+                drawShapeWidget(win, &win->widgets[p]);
+                break;
 
             default:
                 break;
             }
         }
     }
+}
 
+void handleMessage(window *win)
+{
     message msg;
     if (GUI_getMessage(win->handler, &msg) == 0)
     {
         win->needsRepaint = 1;
+
+        //printf(1, "message is %d\n", msg.msg_type);
 
         if (msg.msg_type == WM_WINDOW_CLOSE)
         {
@@ -188,43 +187,40 @@ void updateWindow(window *win)
         {
             GUI_maximizeWindow(win);
         }
+        else if (msg.msg_type == M_KEY_DOWN || msg.msg_type == M_KEY_UP)
+        {
+            win->widgets[win->keyfocus].handler(&win->widgets[win->keyfocus], &msg);
+        }
         else
         {
-            if (msg.msg_type == M_KEY_DOWN || msg.msg_type == M_KEY_UP)
-            {
-                win->widgets[win->keyfocus].handler(&win->widgets[win->keyfocus], &msg);
-            }
-            else
-            {
-                int mouse_x = msg.params[0];
-                int mouse_y = msg.params[1];
+            int mouse_x = msg.params[0];
+            int mouse_y = msg.params[1];
 
-                for (int p = win->widgetlisttail; p != -1; p = win->widgets[p].prev)
+            for (int p = win->widgetlisttail; p != -1; p = win->widgets[p].prev)
+            {
+
+                if ((!win->widgets[p].scrollable && isInRect(win->widgets[p].position.xmin, win->widgets[p].position.ymin, win->widgets[p].position.xmax, win->widgets[p].position.ymax, mouse_x, mouse_y)) ||
+                    (win->widgets[p].scrollable && isInRect(win->widgets[p].position.xmin - win->scrollOffsetX, win->widgets[p].position.ymin - win->scrollOffsetY, win->widgets[p].position.xmax - win->scrollOffsetX, win->widgets[p].position.ymax - win->scrollOffsetY, mouse_x, mouse_y)))
                 {
-
-                    if ((!win->widgets[p].scrollable && isInRect(win->widgets[p].position.xmin, win->widgets[p].position.ymin, win->widgets[p].position.xmax, win->widgets[p].position.ymax, mouse_x, mouse_y)) ||
-                        (win->widgets[p].scrollable && isInRect(win->widgets[p].position.xmin - win->scrollOffsetX, win->widgets[p].position.ymin - win->scrollOffsetY, win->widgets[p].position.xmax - win->scrollOffsetX, win->widgets[p].position.ymax - win->scrollOffsetY, mouse_x, mouse_y)))
+                    if (!win->widgets[p].scrollable)
                     {
-                        if (!win->widgets[p].scrollable)
-                        {
-                            win->widgets[p].handler(&win->widgets[p], &msg);
-                        }
-                        else
-                        {
-                            message newmsg;
-                            newmsg.msg_type = msg.msg_type;
-                            newmsg.params[0] = mouse_x + win->scrollOffsetX;
-                            newmsg.params[1] = mouse_y + win->scrollOffsetY;
-                            win->widgets[p].handler(&win->widgets[p], &newmsg);
-                        }
-
-                        if (win->widgets[p].type == INPUTFIELD)
-                        {
-                            win->keyfocus = p;
-                        }
-
-                        break;
+                        win->widgets[p].handler(&win->widgets[p], &msg);
                     }
+                    else
+                    {
+                        message newmsg;
+                        newmsg.msg_type = msg.msg_type;
+                        newmsg.params[0] = mouse_x + win->scrollOffsetX;
+                        newmsg.params[1] = mouse_y + win->scrollOffsetY;
+                        win->widgets[p].handler(&win->widgets[p], &newmsg);
+                    }
+
+                    if (win->widgets[p].type == INPUTFIELD)
+                    {
+                        win->keyfocus = p;
+                    }
+
+                    break;
                 }
             }
         }
@@ -236,21 +232,24 @@ void updateWindow(window *win)
     return;
 }
 
+void updateWindow(window *win)
+{
+    repaintWindow(win);
+    handleMessage(win);
+}
+
+//TODO: this function remains a update
 void updatePopupWindow(window *win)
 {
-    if (win->needsRepaint)
-    {
-        for (int p = win->widgetlisthead; p != -1; p = win->widgets[p].next)
-        {
-            drawButtonWidget(win, &win->widgets[p]);
-        }
-    }
+    repaintWindow(win);
 
     message msg;
     if (GUI_getPopupMessage(&msg) == 0)
     {
         win->needsRepaint = 1;
-        printf(1, "popup has message\n");
+
+        //deleting this printing seems to make popup window unable to open other programs
+        printf(1, "message is %d\n", msg.msg_type);
 
         if (msg.msg_type == WM_WINDOW_CLOSE)
         {
@@ -401,6 +400,32 @@ int setWidgetHandler(window *win, int index, Handler handler)
     return 0;
 }
 
+int addRectangleWidget(window *win, RGBA c, RGBA filledColor, int filled, int x, int y, int w, int h, int scrollable, Handler handler)
+{
+
+    int widgetId = addWidget(win);
+    if (widgetId == -1)
+        return -1;
+    Shape *s = malloc(sizeof(Shape));
+    s->shape = RECTANGLE;
+    s->params[0] = x;
+    s->params[1] = y;
+    s->params[2] = w;
+    s->params[3] = h;
+    s->filled = filled;
+    s->color = c;
+    s->filledColor = filledColor;
+
+    Widget *widget = &win->widgets[widgetId];
+    widget->context.shape = s;
+    widget->type = SHAPE;
+    widget->handler = handler;
+    widget->scrollable = scrollable;
+    setWidgetSize(widget, x, y, w, h);
+
+    return widgetId;
+}
+
 int addColorFillWidget(window *win, RGBA c, int x, int y, int w, int h, int scrollable, Handler handler)
 {
 
@@ -416,7 +441,6 @@ int addColorFillWidget(window *win, RGBA c, int x, int y, int w, int h, int scro
     widget->type = COLORFILL;
     widget->handler = handler;
     widget->scrollable = scrollable;
-    //widget->window=win;
     setWidgetSize(widget, x, y, w, h);
 
     return widgetId;
@@ -490,15 +514,14 @@ void drawColorFillWidget(window *win, Widget *w)
 {
     int width = w->position.xmax - w->position.xmin;
     int height = w->position.ymax - w->position.ymin;
-    //window_drawFillRect(win, w->context.colorfill->color, w->position.xmin, w->position.ymin, width, height);
+    int xmin = w->position.xmin, ymin = w->position.ymin;
     if (w->scrollable)
     {
-        draw24Image(win, w->context.colorfill->buf, w->position.xmin - win->scrollOffsetX, w->position.ymin - win->scrollOffsetY, width, height);
+        xmin = w->position.xmin - win->scrollOffsetX;
+        ymin = w->position.ymin - win->scrollOffsetY;
     }
-    else
-    {
-        draw24Image(win, w->context.colorfill->buf, w->position.xmin, w->position.ymin, width, height);
-    }
+
+    draw24Image(win, w->context.colorfill->buf, xmin, ymin, width, height);
 }
 
 void drawButtonWidget(window *win, Widget *w)
@@ -507,6 +530,12 @@ void drawButtonWidget(window *win, Widget *w)
     black.R = 0;
     black.G = 0;
     black.B = 0;
+    int xmin = w->position.xmin, ymin = w->position.ymin;
+    if (w->scrollable)
+    {
+        xmin = w->position.xmin - win->scrollOffsetX;
+        ymin = w->position.ymin - win->scrollOffsetY;
+    }
     int width = w->position.xmax - w->position.xmin;
     int height = w->position.ymax - w->position.ymin;
     int textYOffset = (height - CHARACTER_HEIGHT) / 2;
@@ -515,55 +544,62 @@ void drawButtonWidget(window *win, Widget *w)
     {
         textXOffset = (width - strlen(w->context.button->text) * CHARACTER_WIDTH) / 2;
     }
-    if (w->scrollable)
+
+    drawFillRect(win, w->context.button->bg_color, xmin, ymin, width, height);
+    drawRect(win, black, xmin, ymin, width, height);
+    drawString(win, w->context.button->text, w->context.button->color, xmin + textXOffset, ymin + textYOffset, width, height);
+}
+
+//TODO: shape is not actually used in current version
+void drawShapeWidget(window *win, Widget *w)
+{
+    Shape *widget = w->context.shape;
+    int shape = widget->shape;
+    switch (shape)
     {
-        drawFillRect(win, w->context.button->bg_color, w->position.xmin - win->scrollOffsetX, w->position.ymin - win->scrollOffsetY, width, height);
-        drawRect(win, black, w->position.xmin - win->scrollOffsetX, w->position.ymin - win->scrollOffsetY, width, height);
-        drawString(win, w->context.button->text, w->context.button->color, w->position.xmin + textXOffset - win->scrollOffsetX, w->position.ymin + textYOffset - win->scrollOffsetY, width, height);
+    case RECTANGLE:;
+        RGB color;
+        color.R = widget->color.R;
+        color.G = widget->color.G;
+        color.B = widget->color.B;
+        drawRect(win, color, widget->params[0], widget->params[1], widget->params[2], widget->params[3]);
+        break;
+
+    default:
+        break;
     }
-    else
-    {
-        drawFillRect(win, w->context.button->bg_color, w->position.xmin, w->position.ymin, width, height);
-        drawRect(win, black, w->position.xmin, w->position.ymin, width, height);
-        drawString(win, w->context.button->text, w->context.button->color, w->position.xmin + textXOffset, w->position.ymin + textYOffset, width, height);
-    }
-    //drawString(win, w->position.xmin+4, w->position.ymin+2, w->context.button->text, w->context.button->color, width);
 }
 
 void drawTextWidget(window *win, Widget *w)
 {
-    int width = w->position.xmax - w->position.xmin;
-    int height = w->position.ymax - w->position.ymin;
+    int xmin = w->position.xmin, ymin = w->position.ymin;
     if (w->scrollable)
     {
-        drawString(win, w->context.text->text, w->context.text->color, w->position.xmin - win->scrollOffsetX, w->position.ymin - win->scrollOffsetY, width, height);
+        xmin = w->position.xmin - win->scrollOffsetX;
+        ymin = w->position.ymin - win->scrollOffsetY;
     }
-    else
-    {
-        drawString(win, w->context.text->text, w->context.text->color, w->position.xmin, w->position.ymin, width, height);
-    }
-    //drawString(win, w->context.text->text, w->context.text->color, w->position.xmin, w->position.ymin, width, height);
+    int width = w->position.xmax - w->position.xmin;
+    int height = w->position.ymax - w->position.ymin;
+
+    drawString(win, w->context.text->text, w->context.text->color, xmin, ymin, width, height);
 }
 
 void drawInputFieldWidget(window *win, Widget *w)
 {
-    int width = w->position.xmax - w->position.xmin;
-    int height = w->position.ymax - w->position.ymin;
-    //int charPerLine = width / CHARACTER_WIDTH;
-    //int charCount = strlen(w->context.inputfield->text);
-
-    int offset_x = 0;
-    int offset_y = 0;
-    //int charPerLine = width / CHARACTER_WIDTH;
+    int xmin = w->position.xmin, ymin = w->position.ymin;
     if (w->scrollable)
     {
-        drawString(win, w->context.inputfield->text, w->context.inputfield->color, w->position.xmin - win->scrollOffsetX, w->position.ymin - win->scrollOffsetY, width, height);
+        xmin = w->position.xmin - win->scrollOffsetX;
+        ymin = w->position.ymin - win->scrollOffsetY;
     }
-    else
-    {
-        drawString(win, w->context.inputfield->text, w->context.inputfield->color, w->position.xmin, w->position.ymin, width, height);
-    }
+    int width = w->position.xmax - w->position.xmin;
+    int height = w->position.ymax - w->position.ymin;
 
+    drawString(win, w->context.inputfield->text, w->context.inputfield->color, xmin, ymin, width, height);
+
+    //draw the text cursor
+    int offset_x = 0;
+    int offset_y = 0;
     int iter = 0;
     while (iter < w->context.inputfield->current_pos)
     {
@@ -590,16 +626,9 @@ void drawInputFieldWidget(window *win, Widget *w)
     black.G = 0;
     black.B = 0;
     black.A = 255;
-    //printf(1, "cursor at %d, %d\n", offset_x, offset_y);
+
     if (offset_y < height)
     {
-        if (w->scrollable)
-        {
-            drawFillRect(win, black, w->position.xmin + offset_x - win->scrollOffsetX, w->position.ymin + offset_y + 1 - win->scrollOffsetY, 1, CHARACTER_HEIGHT - 4);
-        }
-        else
-        {
-            drawFillRect(win, black, w->position.xmin + offset_x, w->position.ymin + offset_y + 1, 1, CHARACTER_HEIGHT - 4);
-        }
+        drawFillRect(win, black, xmin + offset_x, ymin + offset_y + 1, 1, CHARACTER_HEIGHT - 4);
     }
 }
