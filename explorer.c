@@ -13,6 +13,7 @@
 
 window desktop;
 char current_path[MAX_LONG_STRLEN];
+int current_path_widget;
 char newDir[MAX_SHORT_STRLEN];
 char buf[MAX_LONG_STRLEN];
 struct RGBA textColor;
@@ -76,8 +77,10 @@ void mkdirHandler(Widget *widget, message *msg)
         memset(newDir + strlen(current_path), '/', 1);
         strcpy(newDir + strlen(current_path) + 1, "temp");
 
+
         if (fork() == 0)
         {
+            //even if I put "temp" here, the error persists
             char *argv2[] = {"mkdir", newDir};
             exec(argv2[0], argv2);
             exit();
@@ -158,13 +161,15 @@ fmtname(char *path)
 
 void gui_ls(char *path)
 {
+    strcpy(desktop.widgets[current_path_widget].context.text->text, path);
+    printf(1, desktop.widgets[current_path_widget].context.text->text);
 
     while (1)
     {
         int p;
         for (p = desktop.widgetlisthead; p != -1; p = desktop.widgets[p].next)
         {
-            if (desktop.widgets[p].type == TEXT)
+            if (desktop.widgets[p].type == TEXT && current_path_widget!=p)
             {
                 removeWidget(&desktop, p);
                 break;
@@ -278,6 +283,7 @@ int main(int argc, char *argv[])
     buttonColor.A = 255;
     addButtonWidget(&desktop, textColor, buttonColor, "mkdir", 80, 10, 50, 30, 0, mkdirHandler);
     addButtonWidget(&desktop, textColor, buttonColor, "back", 10, 10, 50, 30, 0, backHandler);
+    current_path_widget=addTextWidget(&desktop, textColor, current_path, 160, 10+6, 200, CHARACTER_HEIGHT, 0, emptyHandler);
 
     while (1)
     {
