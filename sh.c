@@ -195,8 +195,7 @@ int main(int argc, char *argv[])
       dup(wfd);
       runcmd(parsecmd(buf));
     }
-    wait();
-    printf(2, "$ ");
+    //wait();
     dup(wfd);
   }
 

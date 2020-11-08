@@ -24,7 +24,7 @@ void startProgramHandler(Widget *widget, message *msg)
     {
         if (fork() == 0)
         {
-            printf(1, "fork new process\n");
+            //printf(1, "fork new process\n");
             char *argv2[] = {widget->context.button->text};
             exec(argv2[0], argv2);
             exit();
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     textColor.A = 255;
 
     for(int i=0; i<4; i++) {
-       addButtonWidget(&desktop, textColor, buttonColor, GUI_programs[i], 20, 20 + 50*i, 80, 30, 1, startProgramHandler); 
+       addButtonWidget(&desktop, textColor, buttonColor, GUI_programs[i], 20, 20 + 50*i, 80, 30, 0, startProgramHandler); 
     }
 
     addButtonWidget(&desktop, textColor, buttonColor, "start", 5, SCREEN_HEIGHT - 36, 72, 36, 0, startWindowHandler);

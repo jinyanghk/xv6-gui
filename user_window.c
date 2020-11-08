@@ -90,11 +90,12 @@ void createWindow(window *win, const char *title)
         return;
     }
     memset(win->window_buf, 255, height * width * 3);
-    win->widgetlisthead = -1;
-    win->widgetlisttail = -1;
+
     win->keyfocus = -1;
     win->scrollOffsetX = 0;
     win->scrollOffsetY = 0;
+    win->widgetlisthead = -1;
+    win->widgetlisttail = -1;
     int i;
     for (i = 0; i < MAX_WIDGET_SIZE; ++i)
     {
@@ -166,14 +167,16 @@ void repaintWindow(window *win)
     }
 }
 
-void handleMessage(window *win)
+void updateWindow(window *win)
 {
+    repaintWindow(win);
     message msg;
+
     if (GUI_getMessage(win->handler, &msg) == 0)
     {
         win->needsRepaint = 1;
 
-        //printf(1, "message is %d\n", msg.msg_type);
+        printf(2, "message is %d\n", msg.msg_type);
 
         if (msg.msg_type == WM_WINDOW_CLOSE)
         {
@@ -232,12 +235,6 @@ void handleMessage(window *win)
     return;
 }
 
-void updateWindow(window *win)
-{
-    repaintWindow(win);
-    handleMessage(win);
-}
-
 //TODO: this function remains a update
 void updatePopupWindow(window *win)
 {
@@ -249,7 +246,7 @@ void updatePopupWindow(window *win)
         win->needsRepaint = 1;
 
         //deleting this printing seems to make popup window unable to open other programs
-        printf(1, "message is %d\n", msg.msg_type);
+        printf(2, "message is %d\n", msg.msg_type);
 
         if (msg.msg_type == WM_WINDOW_CLOSE)
         {

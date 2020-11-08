@@ -2,7 +2,7 @@
 
 #define MAX_WIDGET_SIZE 50
 #define MAX_SHORT_STRLEN 50
-#define MAX_LONG_STRLEN 500
+#define MAX_LONG_STRLEN 1000
 
 #include "gui.h"
 #include "window_manager.h"

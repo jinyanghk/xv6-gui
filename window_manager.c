@@ -137,12 +137,15 @@ int dispatchMessage(msg_buf *buf, message *msg)
 //return non-zero if buf is empty
 int getMessage(msg_buf *buf, message *result)
 {
+	
 	if (buf->cnt == 0)
 		return 1;
+	acquire(&wmlock);
 	--buf->cnt;
 	*result = buf->data[buf->front];
 	if ((++buf->front) >= MSG_BUF_SIZE)
 		buf->front = 0;
+	release(&wmlock);
 	return 0;
 }
 
