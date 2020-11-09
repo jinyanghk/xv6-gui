@@ -573,7 +573,7 @@ void updateScreen()
 	if (myproc() == 0)
 		switchkvm();
 	else
-		switchuvm(windowlist[desktopId].proc);
+		switchuvm(myproc());
 
 	//draw the mouse
 	drawMouse(screen_buf, mouseShape, wm_mouse_pos.x, wm_mouse_pos.y);
