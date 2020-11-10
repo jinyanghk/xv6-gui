@@ -190,7 +190,7 @@ void updateWindow(window *win)
         {
             GUI_maximizeWindow(win);
         }
-        else if (msg.msg_type == M_KEY_DOWN || msg.msg_type == M_KEY_UP)
+        else if (win->keyfocus != -1 && (msg.msg_type == M_KEY_DOWN || msg.msg_type == M_KEY_UP))
         {
             win->widgets[win->keyfocus].handler(&win->widgets[win->keyfocus], &msg);
         }

@@ -543,7 +543,13 @@ void drawDesktopDock(struct RGB *dst)
 void updateScreen()
 {
 
+
 	acquire(&wmlock);
+	if(myproc()!=windowlist[desktopId].proc) {
+		panic("Update screen called by non desktop process");
+		release(&wmlock);
+		return;
+	}
 
 	memset(screen_buf, 255, screen_size);
 	//draw desktop first
