@@ -310,7 +310,7 @@ void drawRectBorder(RGB *buf, RGB color, int x, int y, int width, int height)
     {
         for (i = 0; i < height; i++)
         {
-            if (y + i > 0 && y + i < SCREEN_WIDTH)
+            if (y + i > 0 && y + i < SCREEN_HEIGHT)
             {
                 *(t + i * SCREEN_WIDTH) = color;
             }
@@ -322,7 +322,7 @@ void drawRectBorder(RGB *buf, RGB color, int x, int y, int width, int height)
         RGB *o = t + width;
         for (i = 0; i < height; i++)
         {
-            if (y + i > 0 && y + i < SCREEN_WIDTH)
+            if (y + i > 0 && y + i < SCREEN_HEIGHT)
             {
                 *(o + i * SCREEN_WIDTH) = color;
             }

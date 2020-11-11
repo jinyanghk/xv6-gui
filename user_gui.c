@@ -192,71 +192,102 @@ void draw24Image(window *win, RGB *img, int x, int y, int width, int height)
 
 void drawRect(window *win, RGB color, int x, int y, int width, int height)
 {
+    int screen_width = win->width;
+    int screen_height = win->height;
 
-    if (x >= win->width || x + width < 0 || y >= win->height || y + height < 0 || x < 0 || y < 0 || width < 0 || height < 0)
+    if (x >= screen_width || x + width < 0 || y >= screen_height || y + height < 0 || width < 0 || height < 0)
     {
         return;
     }
     int i;
-    int max_line = (win->width - x) < width ? (win->width - x) : width;
-    RGB *t = win->window_buf + y * win->width + x;
-    for (i = 0; i < max_line; i++)
+    //int max_line = (SCREEN_WIDTH - x) < width ? (SCREEN_WIDTH - x) : width;
+    RGB *t = win->window_buf + y * screen_width + x;
+
+    if (y >= 0)
     {
-        *(t + i) = color;
-    }
-    if (y + height < win->height)
-    {
-        RGB *o = win->window_buf + (y + height) * win->width + x;
-        memmove(o, t, max_line * 3);
-    }
-    int max_height = (win->height - y) < height ? (win->height - x) : height;
-    for (i = 0; i < max_height; i++)
-    {
-        *(t + i * win->width) = color;
-    }
-    
-    if (x + width < win->width)
-    {
-        t = win->window_buf + y * win->width + x + width;
-        for (i = 0; i < max_height; i++)
+        for (i = 0; i < width; i++)
         {
-            *(t + i * win->width) = color;
+            if (x + i >= 0 && x + i < screen_width)
+            {
+                *(t + i) = color;
+            }
         }
     }
-    
+    if (y + height <= screen_height)
+    {
+        RGB *o = t + height * screen_width;
+        for (i = 0; i < width; i++)
+        {
+            if (y >= 0 && x + i > 0 && x + i < screen_width)
+            {
+                *(o + i) = color;
+            }
+        }
+    }
+    if (x >= 0)
+    {
+        for (i = 0; i < height; i++)
+        {
+            if (y + i >= 0 && y + i < screen_height)
+            {
+                *(t + i * screen_width) = color;
+            }
+        }
+    }
+
+    if (x + width <= screen_width)
+    {
+        RGB *o = t + width;
+        for (i = 0; i < height; i++)
+        {
+            if (y + i >= 0 && y + i < screen_height)
+            {
+                *(o + i * screen_width) = color;
+            }
+        }
+    }
 }
 
 void drawFillRect(window *win, RGBA color, int x, int y, int width, int height)
 {
 
-    if (x >= win->width || x + width < 0 || y >= win->height || y + height < 0 || x < 0 || y < 0 || width < 0 || height < 0)
+    int screen_width = win->width;
+    int screen_height = win->height;
+
+    if (x >= screen_width || x + width < 0 || y >= screen_height || y + height < 0 || width < 0 || height < 0)
     {
         return;
+    }
+
+    if (x < 0)
+    {
+        width = width + x;
+        x = 0;
+    }
+    if (y < 0)
+    {
+        height = height + y;
+        y = 0;
+    }
+    if (x + width > screen_width)
+    {
+        width = screen_width - x;
+    }
+    if (y + height > screen_height)
+    {
+        height = screen_height - y;
     }
     int i, j;
     RGB *t;
     for (i = 0; i < height; i++)
     {
-        if (y + i >= win->height)
-        {
-            break;
-        }
-        if (y + i < 0)
-        {
-            continue;
-        }
         for (j = 0; j < width; j++)
         {
-            if (j + x >= win->width)
+            if (x + j > 0 && x + j < screen_width && y + i > 0 && y + i < screen_height)
             {
-                break;
+                t = win->window_buf + (y + i) * win->width + (x + j);
+                drawPointAlpha(t, color);
             }
-            if (j + x < 0)
-            {
-                continue;
-            }
-            t = win->window_buf + (y + i) * win->width + (x + j);
-            drawPointAlpha(t, color);
         }
     }
 }
