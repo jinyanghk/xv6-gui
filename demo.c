@@ -53,12 +53,12 @@ void initGame()
         int ystart = yend + columnSeparation;
         win_rect *up_position = &programWindow.widgets[columnIds[i]].position;
         win_rect *down_position = &programWindow.widgets[columnIds[columnPairs + i]].position;
-        up_position->xmin = programWindow.width * 0.8 + i * 200;
+        up_position->xmin = programWindow.width * 0.9 + i * 200;
         up_position->xmax = up_position->xmin + columnWidth;
         up_position->ymin = 0;
         up_position->ymax = yend;
 
-        down_position->xmin = programWindow.width * 0.8 + i * 200;
+        down_position->xmin = programWindow.width * 0.9 + i * 200;
         down_position->xmax = up_position->xmin + columnWidth;
         down_position->ymin = ystart;
         down_position->ymax = programWindow.height;
