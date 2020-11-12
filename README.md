@@ -45,7 +45,7 @@ There are also situations when the total height of the widgets is too long (e.g.
 
 Currently implemented GUI programs are desktop.c, demo.c, shell.c, editor.c, explorer.c, startWindow.c (totaling of ~1000 lines of code). Other GUI related functions that I implemented takes ~2000 lines of code. The code I borrowed from [Themis_GUI](https://github.com/YueDayu/Themis_GUI) (mouse and keyboard driver, primitive painting functions, definition of macros and some structs) is ~1000 lines.
 
-![Image of GUI arch](/xv6_gui_architecture.png)
+![Image of GUI arch](/pics/xv6_gui_architecture.png)
 
 ## CURRENT ISSUES
 
