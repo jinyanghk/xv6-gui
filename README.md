@@ -19,6 +19,17 @@ x86 ELF binaries (see https://pdos.csail.mit.edu/6.828/).
 Then run "make TOOLPREFIX=i386-jos-elf-". Now install the QEMU PC
 simulator and run "make qemu".
 
+## GUI RESULT
+
+This is what the GUI interface looks like when you successfully booted the system. Explorer the interface by clicking on buttons, icons, even text you typed. Or use your keyboard to type something in the shell or the editor (support most single keys including enter, backspace and arrow keys).  
+
+<img src="/pics/multiple_window.png" width="600">
+
+<img src="/pics/shell.png" width="600">
+
+<img src="/pics/flappy_bird.png" width="600">
+
+
 ## GUI ARCHITECTURE
 
 ### Kernel level side:
@@ -45,7 +56,8 @@ There are also situations when the total height of the widgets is too long (e.g.
 
 Currently implemented GUI programs are desktop.c, demo.c, shell.c, editor.c, explorer.c, startWindow.c (totaling of ~1000 lines of code). Other GUI related functions that I implemented takes ~2000 lines of code. The code I borrowed from [Themis_GUI](https://github.com/YueDayu/Themis_GUI) (mouse and keyboard driver, primitive painting functions, definition of macros and some structs) is ~1000 lines.
 
-![Image of GUI arch](/xv6_gui_architecture.png)
+![Image of GUI arch](/pics/xv6_gui_architecture.png)
+
 
 ## CURRENT ISSUES
 
