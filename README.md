@@ -29,6 +29,7 @@ This is what the GUI interface looks like when you successfully booted the syste
 
 <img src="/pics/flappy_bird.png" width="600">
 
+<iframe height="360" width="640" src="https://warpwire.duke.edu/w/D9AEAA/" frameborder="0" scrolling="0" allow="autoplay; encrypted-media; fullscreen;  picture-in-picture;" allowfullscreen></iframe>
 
 ## GUI ARCHITECTURE
 
