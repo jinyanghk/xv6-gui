@@ -19,6 +19,14 @@ x86 ELF binaries (see https://pdos.csail.mit.edu/6.828/).
 Then run "make TOOLPREFIX=i386-jos-elf-". Now install the QEMU PC
 simulator and run "make qemu".
 
+## GUI RESULT
+
+This is what the GUI interface looks like when you successfully booted the system. Explorer the interface by clicking on buttons, icons, even text you typed. Or use your keyboard to type something in the shell or the editor (support most single keys including enter, backspace and arrow keys).  
+
+![Multiple windows](/pics/multiple_window.png)
+![Shell](/pics/shell.png)
+![Flappy bird](/pics/flappy_bird.png)
+
 ## GUI ARCHITECTURE
 
 ### Kernel level side:
