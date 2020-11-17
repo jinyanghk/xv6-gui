@@ -12,9 +12,7 @@
 char *GUI_programs[] = {"shell", "editor", "explorer", "demo"};
 
 //for talking to the shell
-int sh_pid, rfd, wfd;
-int gui2sh_fd[2], sh2gui_fd[2];
-char init_string[] = "$ ";
+int sh2gui_fd[2];
 #define READBUFFERSIZE 1000
 char read_buf[READBUFFERSIZE];
 
@@ -235,12 +233,12 @@ void inputHandler(Widget *w, message *msg)
 
                 if (!isGUIprogram)
                 {
-                    //wait();
+                   
                     close(sh2gui_fd[1]);
                     close(0);
                     dup(sh2gui_fd[0]);
                     int n = 0, lastLen = 0;
-                    //memset(read_buf, 0, READBUFFERSIZE);
+            
                     while ((n = read(0, read_buf + lastLen, READBUFFERSIZE)) > 0)
                     {
                         if (lastLen == strlen(read_buf))
@@ -252,8 +250,6 @@ void inputHandler(Widget *w, message *msg)
                 }
             }
 
-            //printf(1, "command is %s\n", buffer);
-            //printf(1, "response is %s\n", read_buf);
 
             int commandLineCount = getMouseYFromOffset(buffer, width, strlen(buffer)) + 1;
             removeWidget(&programWindow, commandWidgetId);

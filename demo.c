@@ -47,7 +47,7 @@ void initGame()
     bird_position->ymin = programWindow.height / 2 - birdHeight / 2;
     bird_position->xmax = programWindow.width / 2 + birdWidth / 2;
     bird_position->ymax = programWindow.height / 2 + birdHeight / 2;
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < columnPairs; i++)
     {
         int yend = ((1000 * i) % 31) * 4 + 50;
         int ystart = yend + columnSeparation;
@@ -141,7 +141,7 @@ int main()
                            "    __\n___( o)>\n\\ <_. ) \n `---\'  ", 0,0,0,0, 0, jumpHandler);
     programWindow.keyfocus = birdId;
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < columnPairs; i++)
     {
         columnIds[i] = addButtonWidget(&programWindow, columnColor, columnColor, "", 0,0,0,0, 0, emptyHandler);
         columnIds[columnPairs + i] = addButtonWidget(&programWindow, columnColor, columnColor, "", 0,0,0,0, 0, emptyHandler);
