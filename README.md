@@ -1,27 +1,18 @@
 ## CONTENT IN THIS REPO
 
-This repo adds a simple GUI interface to the xv6 system (the x86 version 
-by October 2020). It is a single person final project for the course CS510
-offered by Duke University.
+This repo adds a simple GUI interface to the xv6 system (the x86 version by October 2020). It is a single person final project for the course CS510 offered by Duke University.
 
 ## ACKNOWLEDGMENTS
 
-Please see [xv6 public repo](https://github.com/mit-pdos/xv6-public) for the 
-acknowledgments of the public repo. For this repo, it borrows code from 
-[Themis_GUI](https://github.com/YueDayu/Themis_GUI) (characters.c, gui.c, mouse.c, kbd.c, msg.c). 
+Please see [xv6 public repo](https://github.com/mit-pdos/xv6-public) for the acknowledgments of the public repo. For this repo, it borrows code from [Themis_GUI (https://github.com/YueDayu/Themis_GUI) (characters.c, gui.c, mouse.c, kbd.c, msg.c). 
 
 ## BUILDING AND RUNNING XV6
 
-To build xv6 on an x86 ELF machine (like Linux or FreeBSD), run
-"make". On non-x86 or non-ELF machines (like OS X, even on x86), you
-will need to install a cross-compiler gcc suite capable of producing
-x86 ELF binaries (see https://pdos.csail.mit.edu/6.828/).
-Then run "make TOOLPREFIX=i386-jos-elf-". Now install the QEMU PC
-simulator and run "make qemu".
+To build xv6 on an x86 ELF machine (like Linux or FreeBSD), run "make". On non-x86 or non-ELF machines (like OS X, even on x86), you will need to install a cross-compiler gcc suite capable of producing x86 ELF binaries (see https://pdos.csail.mit.edu/6.828/). Then run "make TOOLPREFIX=i386-jos-elf-". Now install the QEMU PC simulator and run "make qemu".
 
 ## GUI RESULT
 
-This is what the GUI interface looks like when you successfully booted the system. Explorer the interface by clicking on buttons, icons, even text you typed. Or use your keyboard to type something in the shell or the editor (support most single keys including enter, backspace and arrow keys).  
+This is what the GUI interface looks like when you successfully booted the system. Explorer the interface by clicking on buttons, icons, or even text you've typed. Or use your keyboard to type something in the shell or the editor (support most single keys including enter, backspace and arrow keys).  
 
 <img src="/pics/multiple_window.png" width="600">
 
@@ -58,16 +49,15 @@ Currently implemented GUI programs are desktop.c, demo.c, shell.c, editor.c, exp
 ![Image of GUI arch](/pics/xv6_gui_architecture.png)
 
 
-## CURRENT ISSUES
+## CURRENT POSSIBLE ISSUES
 
 This project is still a work in progress. I couldn't devote more time to it being occupied by my research and other courses. Bugs are to be expected. Here are some of the issues I have found so far:
 
 - The starting address for other devices (DEVSPACE in memlayout.h) has changed which makes me unable to access the video memory using the code from [Themis_GUI](https://github.com/YueDayu/Themis_GUI). I have mchanged this macro back to its previous value which seems to solve this issue. 
 - The file system is somehow reporting error as I add more code and file into the system. I have increased the block size (BSIZE) from 512 to 1024 which seems to solve the problem. However when adding more files this problem would emerge again and increase BSIZE further to 2048 will fail the system at start up. A rework of the file system is needed.
 - The mouse is sometimes restricted to a smaller rectangular region inside the screen. The "solution" is to move the mouse to the boundaries of the screen to calibrate its position. The keyboard driver does not recgonize some key combinations. I currently only consider single key input. 
-- In the shell program, the last response from the shell won't show up until you issue a new command. This because I send a command and reveive a command both when type '\n' in the shell. I haven't figured out how to solve this issue.
 - When you click the mkdir button in the file explorer to create a temp directory under the root directory, some other directories with random names are also being created. I have no idea how this happens... 
-- Sometimes the program just froze with trap number 13 if you Ctrl+Alt+G and loose grab of the emulator. 
+- I can only start other GUI programs if I add a print statement in the current GUI programs message handler. I haven't figured out how to resolve this issue.  
 
 ## FUTURE PLAN
 
