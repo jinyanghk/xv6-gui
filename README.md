@@ -4,7 +4,8 @@ This repo adds a simple GUI interface to the xv6 system (the x86 version by Octo
 
 ## ACKNOWLEDGMENTS
 
-Please see [xv6 public repo](https://github.com/mit-pdos/xv6-public) for the acknowledgments of the public repo. For this repo, it borrows code from [Themis_GUI] (https://github.com/YueDayu/Themis_GUI) (characters.c, gui.c, mouse.c, kbd.c, msg.c). 
+Please see [xv6 public repo](https://github.com/mit-pdos/xv6-public) for the acknowledgments of the public repo. For this repo, it borrows code from 
+[Themis_GUI](https://github.com/YueDayu/Themis_GUI) (characters.c, gui.c, mouse.c, kbd.c, msg.c). 
 
 ## BUILDING AND RUNNING XV6
 
