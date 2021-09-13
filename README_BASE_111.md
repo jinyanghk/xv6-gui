@@ -13,7 +13,7 @@ To build xv6 on an x86 ELF machine (like Linux or FreeBSD), run "make". On non-x
 
 ## GUI RESULT
 
-This is what the GUI interface looks like when you have successfully booted the system. Explorer the interface by clicking on buttons, icons, or even text you've typed. Or use your keyboard to type something in the shell or the editor (support most single keys including enter, backspace and arrow keys).  
+This is what the GUI interface looks like when you successfully booted the system. Explorer the interface by clicking on buttons, icons, or even text you've typed. Or use your keyboard to type something in the shell or the editor (support most single keys including enter, backspace and arrow keys).  
 
 <img src="/pics/multiple_window.png" width="600">
 
