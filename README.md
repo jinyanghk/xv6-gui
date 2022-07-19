@@ -63,9 +63,9 @@ This project is still a work in progress. I couldn't devote more time to it bein
 ## FUTURE PLAN
 
 Here are some ideas I think can be explored in the future:
-- Add functions for drawing line, circle and other graph primitives. We can then imlement a simple painting program.
-- Redo the widget class. Organize widgets into a tree structure. Add layout widget class (row, column, grid,etc). Add messaging between widgets. Add more constraint options (percentage instead of actual pixels). Basically working towards a mini Flutter project.
-- Add system wide text selection, copy and paste (through the popup window functionality).
-- Add more user programs like image viewer, some simple games (maybe using x or y scrolling). 
+- Add functions for drawing line, circle and other graph primitives. We can then implement a simple painting program.
+- Redo the widget class. Organize widgets into a tree structure. Add layout widget class (row, column, grid,etc). Add messaging between widgets. Add more constraint options (percentage instead of actual pixels). Basically working towards a modern GUI implementation.
+- Add system-wide text selection, copy and paste (through the popup window functionality).
+- Add more user programs like image viewer, some simple games. 
 
 
